@@ -1,5 +1,8 @@
 package ds.gae.entities;
 
+import javax.persistence.Entity;
+
+@Entity
 public class CarType {
     
     private String name;

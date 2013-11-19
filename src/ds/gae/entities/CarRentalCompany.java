@@ -11,8 +11,11 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.persistence.Entity;
+
 import ds.gae.ReservationException;
 
+@Entity
 public class CarRentalCompany {
 
 	private static Logger logger = Logger.getLogger(CarRentalCompany.class.getName());

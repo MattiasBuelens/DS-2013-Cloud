@@ -19,6 +19,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 
 import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 
 import ds.gae.ReservationException;
 
@@ -33,14 +34,19 @@ public class CarRentalCompany {
 
 	private static final Logger logger = Logger.getLogger(CarRentalCompany.class.getName());
 
+	/*
+	 * CarRentalCompany is identified by (companyName).
+	 * 
+	 * Since this is a root entity, a simple @Id String does the trick.
+	 */
 	@Id
 	private String name;
 
 	@OneToMany(cascade = CascadeType.ALL)
-	private Set<Car> cars;
-
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "company")
 	private Map<String, CarType> carTypes = new HashMap<String, CarType>();
+
+	@OneToMany(cascade = CascadeType.ALL)
+	private Set<Car> cars = new HashSet<Car>();
 
 	/***************
 	 * CONSTRUCTOR *
@@ -49,9 +55,8 @@ public class CarRentalCompany {
 	public CarRentalCompany(String name, Set<Car> cars) {
 		logger.log(Level.INFO, "<{0}> Car Rental Company {0} starting up...", name);
 		setName(name);
-		this.cars = cars;
 		for (Car car : cars) {
-			carTypes.put(car.getType().getName(), car.getType());
+			addCar(car);
 		}
 	}
 
@@ -65,6 +70,14 @@ public class CarRentalCompany {
 
 	private void setName(String name) {
 		this.name = name;
+	}
+
+	public Key getKey() {
+		return getKey(name);
+	}
+
+	public static Key getKey(String companyName) {
+		return KeyFactory.createKey(KIND, companyName);
 	}
 
 	/*************
@@ -101,16 +114,26 @@ public class CarRentalCompany {
 		return availableCarTypes;
 	}
 
+	protected void addCarType(CarType carType) {
+		if (!carTypes.containsKey(carType.getName())) {
+			carTypes.put(carType.getName(), carType);
+		}
+	}
+
+	protected void removeCarType(CarType carType) {
+		carTypes.remove(carType.getName());
+	}
+
 	/*********
 	 * CARS *
 	 *********/
 
-	private Car getCar(Key carKey) {
+	private Car getCar(long carId) {
 		for (Car car : cars) {
-			if (car.getKey().equals(carKey))
+			if (car.getId() == carId)
 				return car;
 		}
-		throw new IllegalArgumentException("<" + name + "> No car with ID " + carKey);
+		throw new IllegalArgumentException("<" + name + "> No car with ID " + carId);
 	}
 
 	public Set<Car> getCars() {
@@ -125,6 +148,15 @@ public class CarRentalCompany {
 			}
 		}
 		return availableCars;
+	}
+
+	protected void addCar(Car car) {
+		addCarType(car.getType());
+		cars.add(car);
+	}
+
+	protected void removeCar(Car car) {
+		cars.remove(car);
 	}
 
 	/****************
@@ -174,7 +206,7 @@ public class CarRentalCompany {
 	public void cancelReservation(Reservation res) {
 		logger.log(Level.INFO, "<{0}> Cancelling reservation {1}",
 				new Object[] { name, res.toString() });
-		getCar(res.getCarKey()).removeReservation(res);
+		res.getCar().removeReservation(res);
 	}
 
 }

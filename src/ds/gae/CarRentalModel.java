@@ -52,7 +52,7 @@ public class CarRentalModel {
 		// return carTypeNames;
 
 		List<String> carTypeNames = em.createNamedQuery("CarType.namesInCompany", String.class)
-				.getResultList();
+				.setParameter("companyKey", CarRentalCompany.getKey(crcName)).getResultList();
 		return new HashSet<String>(carTypeNames);
 	}
 

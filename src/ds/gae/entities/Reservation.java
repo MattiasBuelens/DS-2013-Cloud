@@ -9,8 +9,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
-import org.datanucleus.api.jpa.annotations.Extension;
-
 import com.google.appengine.api.datastore.Key;
 
 @Entity(name = Reservation.KIND)
@@ -18,13 +16,20 @@ public class Reservation {
 
 	public static final String KIND = "Reservation";
 
+	/*
+	 * Reservation is identified by (Car, ReservationID).
+	 * 
+	 * Since this is a child object, we cannot use an @Id long. Thus, we have to
+	 * use a Key. Luckily, GAE can still auto-generate one for us.
+	 * 
+	 * The parent key is set through the owned many-to-one relation with Car.
+	 */
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Key key;
 
 	@ManyToOne
-	@Extension(vendorName = "datanucleus", key = "gae.parent-pk", value = "true")
-	private Key carKey;
+	private Car car;
 
 	@Embedded
 	private Quote quote;
@@ -38,19 +43,19 @@ public class Reservation {
 
 	public Reservation(Quote quote, Car car) {
 		this.quote = quote;
-		this.carKey = car.getKey();
+		this.car = car;
 	}
 
 	/******
 	 * ID *
 	 ******/
 
-	public Key getCarKey() {
-		return carKey;
+	public Car getCar() {
+		return car;
 	}
 
 	public long getCarId() {
-		return getCarKey().getId();
+		return getCar().getId();
 	}
 
 	public Quote getQuote() {
@@ -90,7 +95,7 @@ public class Reservation {
 		return String.format(
 				"Reservation for %s from %s to %s at %s\nCar type: %s\tCar: %s\nTotal price: %.2f",
 				getCarRenter(), getStartDate(), getEndDate(), getRentalCompany(), getCarType(),
-				getCarKey(), getRentalPrice());
+				getCarId(), getRentalPrice());
 	}
 
 	@Override
@@ -98,7 +103,7 @@ public class Reservation {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((key == null) ? 0 : key.hashCode());
-		result = prime * result + ((carKey == null) ? 0 : carKey.hashCode());
+		result = prime * result + ((car == null) ? 0 : car.hashCode());
 		result = prime * result + ((quote == null) ? 0 : quote.hashCode());
 		return result;
 	}
@@ -117,10 +122,10 @@ public class Reservation {
 				return false;
 		} else if (!key.equals(other.key))
 			return false;
-		if (carKey == null) {
-			if (other.carKey != null)
+		if (car == null) {
+			if (other.car != null)
 				return false;
-		} else if (!carKey.equals(other.carKey))
+		} else if (!car.equals(other.car))
 			return false;
 		if (quote == null) {
 			if (other.quote != null)

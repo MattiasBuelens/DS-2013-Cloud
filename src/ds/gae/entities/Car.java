@@ -12,8 +12,6 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
-import org.datanucleus.api.jpa.annotations.Extension;
-
 import com.google.appengine.api.datastore.Key;
 
 @Entity(name = Car.KIND)
@@ -21,17 +19,23 @@ public class Car {
 
 	public static final String KIND = "Car";
 
+	/*
+	 * Car is identified by (CarType, CarID).
+	 * 
+	 * Since this is a child object, we cannot use an @Id long. Thus, we have to
+	 * use a Key. Luckily, GAE can still auto-generate one for us.
+	 * 
+	 * The parent key is set through the owned many-to-one relation with
+	 * CarType.
+	 */
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Key key;
 
-	@Extension(vendorName = "datanucleus", key = "gae.parent-pk", value = "true")
-	private Key carTypeKey;
-
 	@ManyToOne
 	private CarType carType;
 
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "carKey")
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "car")
 	private Set<Reservation> reservations;
 
 	/***************
@@ -43,7 +47,6 @@ public class Car {
 
 	public Car(CarType type) {
 		this.carType = type;
-		this.carTypeKey = carType.getKey();
 		this.reservations = new HashSet<Reservation>();
 	}
 
@@ -65,6 +68,10 @@ public class Car {
 
 	public CarType getType() {
 		return carType;
+	}
+
+	protected void setType(CarType type) {
+		carType = type;
 	}
 
 	/****************

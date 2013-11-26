@@ -2,28 +2,38 @@ package ds.gae.entities;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 
 import org.datanucleus.api.jpa.annotations.Extension;
 
 import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 
 @Entity(name = CarType.KIND)
 @NamedQueries({ @NamedQuery(name = "CarType.namesInCompany",
-		query = "SELECT ct.name FROM CarType ct WHERE company = :companyName") })
+		query = "SELECT ct.name FROM CarType ct WHERE companyKey = :companyKey") })
 public class CarType {
 
 	public static final String KIND = "CarType";
 
-	// TODO Fix me!
+	/*
+	 * CarType is identified by (CarRentalCompany, carTypeName).
+	 * CarRentalCompany is identified by (companyName).
+	 * 
+	 * Since all these values are known at construction, the complete key can be
+	 * created right away.
+	 * 
+	 * As we still want to query on the company, we use the extensions to
+	 * decompose the key into fields. These fields can then be used in JPQL
+	 * queries.
+	 */
 	@Id
-	private Key key;
+	@Extension(vendorName = "datanucleus", key = "gae.encoded-pk", value = "true")
+	private String encodedKey;
 
-	@ManyToOne
 	@Extension(vendorName = "datanucleus", key = "gae.parent-pk", value = "true")
-	private String company;
+	private Key companyKey;
 
 	@Extension(vendorName = "datanucleus", key = "gae.pk-name", value = "true")
 	private String name;
@@ -41,10 +51,11 @@ public class CarType {
 	protected CarType() {
 	}
 
-	public CarType(String company, String name, int nbOfSeats, float trunkSpace,
+	public CarType(String companyName, String name, int nbOfSeats, float trunkSpace,
 			double rentalPricePerDay, boolean smokingAllowed) {
-		this.company = company;
+		this.companyKey = CarRentalCompany.getKey(companyName);
 		this.name = name;
+		this.encodedKey = KeyFactory.keyToString(getKey(companyName, name));
 		this.nbOfSeats = nbOfSeats;
 		this.trunkSpace = trunkSpace;
 		this.rentalPricePerDay = rentalPricePerDay;
@@ -52,7 +63,11 @@ public class CarType {
 	}
 
 	public Key getKey() {
-		return key;
+		return KeyFactory.stringToKey(encodedKey);
+	}
+
+	public static Key getKey(String companyName, String name) {
+		return KeyFactory.createKey(CarRentalCompany.getKey(companyName), KIND, name);
 	}
 
 	public String getName() {
@@ -90,8 +105,7 @@ public class CarType {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((company == null) ? 0 : company.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((encodedKey == null) ? 0 : encodedKey.hashCode());
 		return result;
 	}
 
@@ -104,15 +118,10 @@ public class CarType {
 		if (getClass() != obj.getClass())
 			return false;
 		CarType other = (CarType) obj;
-		if (company == null) {
-			if (other.company != null)
+		if (encodedKey == null) {
+			if (other.encodedKey != null)
 				return false;
-		} else if (!company.equals(other.company))
-			return false;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
+		} else if (!encodedKey.equals(other.encodedKey))
 			return false;
 		return true;
 	}

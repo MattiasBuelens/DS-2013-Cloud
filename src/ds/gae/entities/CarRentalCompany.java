@@ -24,14 +24,14 @@ import ds.gae.ReservationException;
 
 @Entity(name = CarRentalCompany.KIND)
 @NamedQueries({
-	@NamedQuery(name = "CarRentalCompany.allNames", query = "SELECT crc.name FROM CarRentalCompany crc")
-})
+		@NamedQuery(name = "CarRentalCompany.all", query = "SELECT crc FROM CarRentalCompany crc"),
+		@NamedQuery(name = "CarRentalCompany.allNames",
+				query = "SELECT crc.name FROM CarRentalCompany crc") })
 public class CarRentalCompany {
 
 	public static final String KIND = "CarRentalCompany";
 
-	private static final Logger logger = Logger
-			.getLogger(CarRentalCompany.class.getName());
+	private static final Logger logger = Logger.getLogger(CarRentalCompany.class.getName());
 
 	@Id
 	private String name;
@@ -45,8 +45,7 @@ public class CarRentalCompany {
 	 ***************/
 
 	public CarRentalCompany(String name, Set<Car> cars) {
-		logger.log(Level.INFO, "<{0}> Car Rental Company {0} starting up...",
-				name);
+		logger.log(Level.INFO, "<{0}> Car Rental Company {0} starting up...", name);
 		setName(name);
 		this.cars = cars;
 		for (Car car : cars) {
@@ -81,18 +80,17 @@ public class CarRentalCompany {
 	public CarType getCarType(String carTypeName) {
 		if (carTypes.containsKey(carTypeName))
 			return carTypes.get(carTypeName);
-		throw new IllegalArgumentException("<" + carTypeName
-				+ "> No car type of name " + carTypeName);
+		throw new IllegalArgumentException("<" + carTypeName + "> No car type of name "
+				+ carTypeName);
 	}
 
 	public boolean isAvailable(String carTypeName, Date start, Date end) {
-		logger.log(Level.INFO, "<{0}> Checking availability for car type {1}",
-				new Object[] { name, carTypeName });
+		logger.log(Level.INFO, "<{0}> Checking availability for car type {1}", new Object[] { name,
+				carTypeName });
 		if (carTypes.containsKey(carTypeName))
-			return getAvailableCarTypes(start, end).contains(
-					carTypes.get(carTypeName));
-		throw new IllegalArgumentException("<" + carTypeName
-				+ "> No car type of name " + carTypeName);
+			return getAvailableCarTypes(start, end).contains(carTypes.get(carTypeName));
+		throw new IllegalArgumentException("<" + carTypeName + "> No car type of name "
+				+ carTypeName);
 	}
 
 	public Set<CarType> getAvailableCarTypes(Date start, Date end) {
@@ -114,8 +112,7 @@ public class CarRentalCompany {
 			if (car.getKey().equals(carKey))
 				return car;
 		}
-		throw new IllegalArgumentException("<" + name + "> No car with key "
-				+ carKey);
+		throw new IllegalArgumentException("<" + name + "> No car with ID " + carKey);
 	}
 
 	public Set<Car> getCars() {
@@ -125,8 +122,7 @@ public class CarRentalCompany {
 	private List<Car> getAvailableCars(String carType, Date start, Date end) {
 		List<Car> availableCars = new LinkedList<Car>();
 		for (Car car : cars) {
-			if (car.getType().getName().equals(carType)
-					&& car.isAvailable(start, end)) {
+			if (car.getType().getName().equals(carType) && car.isAvailable(start, end)) {
 				availableCars.add(car);
 			}
 		}
@@ -139,9 +135,7 @@ public class CarRentalCompany {
 
 	public Quote createQuote(ReservationConstraints constraints, String client)
 			throws ReservationException {
-		logger.log(
-				Level.INFO,
-				"<{0}> Creating tentative reservation for {1} with constraints {2}",
+		logger.log(Level.INFO, "<{0}> Creating tentative reservation for {1} with constraints {2}",
 				new Object[] { name, client, constraints.toString() });
 
 		CarType type = getCarType(constraints.getCarType());
@@ -154,32 +148,25 @@ public class CarRentalCompany {
 		double price = calculateRentalPrice(type.getRentalPricePerDay(),
 				constraints.getStartDate(), constraints.getEndDate());
 
-		return new Quote(client, constraints.getStartDate(),
-				constraints.getEndDate(), getName(), constraints.getCarType(),
-				price);
+		return new Quote(client, constraints.getStartDate(), constraints.getEndDate(), getName(),
+				constraints.getCarType(), price);
 	}
 
 	// Implementation can be subject to different pricing strategies
-	private double calculateRentalPrice(double rentalPricePerDay, Date start,
-			Date end) {
+	private double calculateRentalPrice(double rentalPricePerDay, Date start, Date end) {
 		return rentalPricePerDay
-				* Math.ceil((end.getTime() - start.getTime())
-						/ (1000 * 60 * 60 * 24D));
+				* Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24D));
 	}
 
 	public Reservation confirmQuote(Quote quote) throws ReservationException {
-		logger.log(Level.INFO, "<{0}> Reservation of {1}", new Object[] { name,
-				quote.toString() });
-		List<Car> availableCars = getAvailableCars(quote.getCarType(),
-				quote.getStartDate(), quote.getEndDate());
+		logger.log(Level.INFO, "<{0}> Reservation of {1}", new Object[] { name, quote.toString() });
+		List<Car> availableCars = getAvailableCars(quote.getCarType(), quote.getStartDate(),
+				quote.getEndDate());
 		if (availableCars.isEmpty())
-			throw new ReservationException(
-					"Reservation failed, all cars of type "
-							+ quote.getCarType() + " are unavailable from "
-							+ quote.getStartDate() + " to "
-							+ quote.getEndDate());
-		Car car = availableCars
-				.get((int) (Math.random() * availableCars.size()));
+			throw new ReservationException("Reservation failed, all cars of type "
+					+ quote.getCarType() + " are unavailable from " + quote.getStartDate() + " to "
+					+ quote.getEndDate());
+		Car car = availableCars.get((int) (Math.random() * availableCars.size()));
 
 		Reservation res = new Reservation(quote, car);
 		car.addReservation(res);
@@ -191,4 +178,5 @@ public class CarRentalCompany {
 				new Object[] { name, res.toString() });
 		getCar(res.getCarKey()).removeReservation(res);
 	}
+
 }

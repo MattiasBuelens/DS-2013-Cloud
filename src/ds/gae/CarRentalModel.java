@@ -2,10 +2,8 @@ package ds.gae;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
@@ -42,13 +40,17 @@ public class CarRentalModel {
 	 *         given car rental company.
 	 */
 	public Set<String> getCarTypesNames(String crcName) {
-		CarRentalCompany crc = em.find(CarRentalCompany.class, crcName);
-		Collection<CarType> carTypes = crc.getAllCarTypes();
-		Set<String> carTypeNames = new HashSet<>();
-		for (CarType carType : carTypes) {
-			carTypeNames.add(carType.getName());
-		}
-		return carTypeNames;
+		// CarRentalCompany crc = em.find(CarRentalCompany.class, crcName);
+		// Collection<CarType> carTypes = crc.getAllCarTypes();
+		// Set<String> carTypeNames = new HashSet<>();
+		// for (CarType carType : carTypes) {
+		// carTypeNames.add(carType.getName());
+		// }
+		// return carTypeNames;
+
+		List<String> carTypeNames = em.createNamedQuery("CarType.namesInCompany", String.class)
+				.getResultList();
+		return new HashSet<String>(carTypeNames);
 	}
 
 	/**
@@ -57,8 +59,19 @@ public class CarRentalModel {
 	 * @return the list of car rental companies
 	 */
 	public Collection<String> getAllRentalCompanyNames() {
-		return em.createNamedQuery("CarRentalCompany.allNames", String.class)
-				.getResultList();
+		return em.createNamedQuery("CarRentalCompany.allNames", String.class).getResultList();
+	}
+
+	public Collection<CarRentalCompany> getAllRentalCompanies() {
+		return em.createNamedQuery("CarRentalCompany.all", CarRentalCompany.class).getResultList();
+	}
+
+	public CarRentalCompany getRentalCompany(String company) {
+		return em.find(CarRentalCompany.class, company);
+	}
+
+	public void addRentalCompany(CarRentalCompany company) {
+		em.persist(company);
 	}
 
 	/**
@@ -76,11 +89,9 @@ public class CarRentalModel {
 	 * @throws ReservationException
 	 *             No car available that fits the given constraints.
 	 */
-	public Quote createQuote(String company, String renterName,
-			ReservationConstraints constraints) throws ReservationException {
-		// FIXME: use persistence instead
-
-		CarRentalCompany crc = CRCS.get(company);
+	public Quote createQuote(String company, String renterName, ReservationConstraints constraints)
+			throws ReservationException {
+		CarRentalCompany crc = getRentalCompany(company);
 		Quote out = null;
 
 		if (crc != null) {
@@ -102,9 +113,7 @@ public class CarRentalModel {
 	 *             Confirmation of given quote failed.
 	 */
 	public void confirmQuote(Quote q) throws ReservationException {
-		// FIXME: use persistence instead
-
-		CarRentalCompany crc = CRCS.get(q.getRentalCompany());
+		CarRentalCompany crc = getRentalCompany(q.getRentalCompany());
 		crc.confirmQuote(q);
 	}
 
@@ -120,8 +129,7 @@ public class CarRentalModel {
 	 *             One of the quotes cannot be confirmed. Therefore none of the
 	 *             given quotes is confirmed.
 	 */
-	public List<Reservation> confirmQuotes(List<Quote> quotes)
-			throws ReservationException {
+	public List<Reservation> confirmQuotes(List<Quote> quotes) throws ReservationException {
 		// TODO add implementation
 		return null;
 	}
@@ -138,7 +146,7 @@ public class CarRentalModel {
 
 		List<Reservation> out = new ArrayList<Reservation>();
 
-		for (CarRentalCompany crc : CRCS.values()) {
+		for (CarRentalCompany crc : getAllRentalCompanies()) {
 			for (Car c : crc.getCars()) {
 				for (Reservation r : c.getReservations()) {
 					if (r.getCarRenter().equals(renter)) {
@@ -161,7 +169,7 @@ public class CarRentalModel {
 	public Collection<CarType> getCarTypesOfCarRentalCompany(String crcName) {
 		// FIXME: use persistence instead
 
-		CarRentalCompany crc = CRCS.get(crcName);
+		CarRentalCompany crc = getRentalCompany(crcName);
 		Collection<CarType> out = new ArrayList<CarType>(crc.getAllCarTypes());
 		return out;
 	}
@@ -176,8 +184,7 @@ public class CarRentalModel {
 	 *            the given car type
 	 * @return A list of car IDs of cars with the given car type.
 	 */
-	public Collection<Integer> getCarIdsByCarType(String crcName,
-			CarType carType) {
+	public Collection<Integer> getCarIdsByCarType(String crcName, CarType carType) {
 		Collection<Integer> out = new ArrayList<Integer>();
 		for (Car c : getCarsByCarType(crcName, carType)) {
 			out.add((int) c.getId());
@@ -214,7 +221,7 @@ public class CarRentalModel {
 		// FIXME: use persistence instead
 
 		List<Car> out = new ArrayList<Car>();
-		for (CarRentalCompany crc : CRCS.values()) {
+		for (CarRentalCompany crc : getAllRentalCompanies()) {
 			for (Car c : crc.getCars()) {
 				if (c.getType() == carType) {
 					out.add(c);

@@ -2,12 +2,16 @@ package ds.gae.entities;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 
 import org.datanucleus.api.jpa.annotations.Extension;
 
 import com.google.appengine.api.datastore.Key;
 
 @Entity(name = CarType.KIND)
+@NamedQueries({ @NamedQuery(name = "CarType.namesInCompany",
+		query = "SELECT ct.name FROM CarType ct WHERE company = :companyName") })
 public class CarType {
 
 	public static final String KIND = "CarType";
@@ -16,7 +20,7 @@ public class CarType {
 	private Key key;
 
 	@Extension(vendorName = "datanucleus", key = "gae.parent-pk", value = "true")
-	private Key companyKey;
+	private String company;
 
 	@Extension(vendorName = "datanucleus", key = "gae.pk-name", value = "true")
 	private String name;
@@ -34,9 +38,9 @@ public class CarType {
 	protected CarType() {
 	}
 
-	public CarType(CarRentalCompany company, String name, int nbOfSeats,
-			float trunkSpace, double rentalPricePerDay, boolean smokingAllowed) {
-		this.companyKey = company.getKey();
+	public CarType(String company, String name, int nbOfSeats, float trunkSpace,
+			double rentalPricePerDay, boolean smokingAllowed) {
+		this.company = company;
 		this.name = name;
 		this.nbOfSeats = nbOfSeats;
 		this.trunkSpace = trunkSpace;
@@ -74,10 +78,9 @@ public class CarType {
 
 	@Override
 	public String toString() {
-		return String
-				.format("Car type: %s \t[seats: %d, price: %.2f, smoking: %b, trunk: %.0fl]",
-						getName(), getNbOfSeats(), getRentalPricePerDay(),
-						isSmokingAllowed(), getTrunkSpace());
+		return String.format("Car type: %s \t[seats: %d, price: %.2f, smoking: %b, trunk: %.0fl]",
+				getName(), getNbOfSeats(), getRentalPricePerDay(), isSmokingAllowed(),
+				getTrunkSpace());
 	}
 
 	@Override

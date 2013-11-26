@@ -29,9 +29,8 @@ public class Reservation extends Quote {
 	}
 
 	public Reservation(Quote quote, Car car) {
-		super(quote.getCarRenter(), quote.getStartDate(), quote.getEndDate(),
-				quote.getRentalCompany(), quote.getCarType(), quote
-						.getRentalPrice());
+		super(quote.getCarRenter(), quote.getStartDate(), quote.getEndDate(), quote.getRentalCompany(), quote
+				.getCarType(), quote.getRentalPrice());
 		this.carKey = car.getKey();
 	}
 
@@ -49,11 +48,9 @@ public class Reservation extends Quote {
 
 	@Override
 	public String toString() {
-		return String
-				.format("Reservation for %s from %s to %s at %s\nCar type: %s\tCar: %s\nTotal price: %.2f",
-						getCarRenter(), getStartDate(), getEndDate(),
-						getRentalCompany(), getCarType(), getCarKey(),
-						getRentalPrice());
+		return String.format("Reservation for %s from %s to %s at %s\nCar type: %s\tCar: %s\nTotal price: %.2f",
+				getCarRenter(), getStartDate(), getEndDate(), getRentalCompany(), getCarType(), getCarKey(),
+				getRentalPrice());
 	}
 
 	@Override

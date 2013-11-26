@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
 import org.datanucleus.api.jpa.annotations.Extension;
@@ -26,6 +27,7 @@ public class Car {
 	@Extension(vendorName = "datanucleus", key = "gae.parent-pk", value = "true")
 	private Key carTypeKey;
 
+	@ManyToOne
 	private CarType carType;
 
 	@OneToMany
@@ -77,8 +79,7 @@ public class Car {
 			throw new IllegalArgumentException("Illegal given period");
 
 		for (Reservation reservation : reservations) {
-			if (reservation.getEndDate().before(start)
-					|| reservation.getStartDate().after(end))
+			if (reservation.getEndDate().before(start) || reservation.getStartDate().after(end))
 				continue;
 			return false;
 		}

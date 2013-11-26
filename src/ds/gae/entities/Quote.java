@@ -2,16 +2,23 @@ package ds.gae.entities;
 
 import java.util.Date;
 
-import javax.persistence.MappedSuperclass;
+import javax.persistence.Basic;
+import javax.persistence.Embeddable;
 
-@MappedSuperclass
+@Embeddable
 public class Quote {
 
+	@Basic
 	private Date startDate;
+	@Basic
 	private Date endDate;
+	@Basic
 	private String carRenter;
+	@Basic
 	private String rentalCompany;
+	@Basic
 	private String carType;
+	@Basic
 	private double rentalPrice;
 
 	/***************

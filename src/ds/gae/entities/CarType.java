@@ -2,6 +2,7 @@ package ds.gae.entities;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 
@@ -16,9 +17,11 @@ public class CarType {
 
 	public static final String KIND = "CarType";
 
+	// TODO Fix me!
 	@Id
 	private Key key;
 
+	@ManyToOne
 	@Extension(vendorName = "datanucleus", key = "gae.parent-pk", value = "true")
 	private String company;
 
@@ -53,7 +56,7 @@ public class CarType {
 	}
 
 	public String getName() {
-		return key.getName();
+		return name;
 	}
 
 	public int getNbOfSeats() {
@@ -87,7 +90,8 @@ public class CarType {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((key == null) ? 0 : key.hashCode());
+		result = prime * result + ((company == null) ? 0 : company.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
 
@@ -100,10 +104,15 @@ public class CarType {
 		if (getClass() != obj.getClass())
 			return false;
 		CarType other = (CarType) obj;
-		if (key == null) {
-			if (other.key != null)
+		if (company == null) {
+			if (other.company != null)
 				return false;
-		} else if (!key.equals(other.key))
+		} else if (!company.equals(other.company))
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
 			return false;
 		return true;
 	}

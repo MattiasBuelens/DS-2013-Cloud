@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
@@ -18,7 +19,6 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 
 import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
 
 import ds.gae.ReservationException;
 
@@ -35,9 +35,11 @@ public class CarRentalCompany {
 
 	@Id
 	private String name;
-	@OneToMany
+
+	@OneToMany(cascade = CascadeType.ALL)
 	private Set<Car> cars;
-	@OneToMany
+
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "company")
 	private Map<String, CarType> carTypes = new HashMap<String, CarType>();
 
 	/***************
@@ -56,10 +58,6 @@ public class CarRentalCompany {
 	/********
 	 * NAME *
 	 ********/
-
-	public Key getKey() {
-		return KeyFactory.createKey(KIND, getName());
-	}
 
 	public String getName() {
 		return name;

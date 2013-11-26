@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -30,7 +31,7 @@ public class Car {
 	@ManyToOne
 	private CarType carType;
 
-	@OneToMany
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "carKey")
 	private Set<Reservation> reservations;
 
 	/***************
@@ -94,4 +95,10 @@ public class Car {
 		// equals-method for Reservation is required!
 		reservations.remove(reservation);
 	}
+
+	@Override
+	public String toString() {
+		return "Car [carType=" + carType + ", reservations=" + reservations + "]";
+	}
+
 }

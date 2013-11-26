@@ -25,12 +25,6 @@ public class CarRentalModel {
 		return instance;
 	}
 
-	private EntityManager em;
-
-	public CarRentalModel() {
-		this.em = EMF.get().createEntityManager();
-	}
-
 	/**
 	 * Get the car types available in the given car rental company.
 	 * 
@@ -40,6 +34,15 @@ public class CarRentalModel {
 	 *         given car rental company.
 	 */
 	public Set<String> getCarTypesNames(String crcName) {
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			return getCarTypesNames(em, crcName);
+		} finally {
+			em.close();
+		}
+	}
+
+	public Set<String> getCarTypesNames(EntityManager em, String crcName) {
 		// CarRentalCompany crc = em.find(CarRentalCompany.class, crcName);
 		// Collection<CarType> carTypes = crc.getAllCarTypes();
 		// Set<String> carTypeNames = new HashSet<>();
@@ -59,18 +62,54 @@ public class CarRentalModel {
 	 * @return the list of car rental companies
 	 */
 	public Collection<String> getAllRentalCompanyNames() {
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			return getAllRentalCompanyNames(em);
+		} finally {
+			em.close();
+		}
+	}
+
+	protected Collection<String> getAllRentalCompanyNames(EntityManager em) {
 		return em.createNamedQuery("CarRentalCompany.allNames", String.class).getResultList();
 	}
 
 	public Collection<CarRentalCompany> getAllRentalCompanies() {
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			return getAllRentalCompanies(em);
+		} finally {
+			em.close();
+		}
+	}
+
+	protected Collection<CarRentalCompany> getAllRentalCompanies(EntityManager em) {
 		return em.createNamedQuery("CarRentalCompany.all", CarRentalCompany.class).getResultList();
 	}
 
 	public CarRentalCompany getRentalCompany(String company) {
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			return getRentalCompany(em, company);
+		} finally {
+			em.close();
+		}
+	}
+
+	protected CarRentalCompany getRentalCompany(EntityManager em, String company) {
 		return em.find(CarRentalCompany.class, company);
 	}
 
 	public void addRentalCompany(CarRentalCompany company) {
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			addRentalCompany(em, company);
+		} finally {
+			em.close();
+		}
+	}
+
+	protected void addRentalCompany(EntityManager em, CarRentalCompany company) {
 		em.persist(company);
 	}
 
@@ -91,16 +130,20 @@ public class CarRentalModel {
 	 */
 	public Quote createQuote(String company, String renterName, ReservationConstraints constraints)
 			throws ReservationException {
-		CarRentalCompany crc = getRentalCompany(company);
-		Quote out = null;
-
-		if (crc != null) {
-			out = crc.createQuote(constraints, renterName);
-		} else {
-			throw new ReservationException("CarRentalCompany not found.");
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			CarRentalCompany crc = getRentalCompany(em, company);
+			Quote out = null;
+			if (crc != null) {
+				out = crc.createQuote(constraints, renterName);
+			} else {
+				throw new ReservationException("CarRentalCompany not found.");
+			}
+			em.persist(crc);
+			return out;
+		} finally {
+			em.close();
 		}
-
-		return out;
 	}
 
 	/**
@@ -113,8 +156,14 @@ public class CarRentalModel {
 	 *             Confirmation of given quote failed.
 	 */
 	public void confirmQuote(Quote q) throws ReservationException {
-		CarRentalCompany crc = getRentalCompany(q.getRentalCompany());
-		crc.confirmQuote(q);
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			CarRentalCompany crc = getRentalCompany(em, q.getRentalCompany());
+			crc.confirmQuote(q);
+			em.persist(crc);
+		} finally {
+			em.close();
+		}
 	}
 
 	/**

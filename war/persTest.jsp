@@ -84,7 +84,7 @@ for (String crc : CarRentalModel.get().getAllRentalCompanyNames()) {
 			<div class="group">
 				<table>
 					<tr>
-						<th>Rental Company</th>						
+						<th>Rental Company</th>	
 						<th>Car Type/ID</th>
 						<th>Rental Period</th>
 						<th>Rental Price</th>			

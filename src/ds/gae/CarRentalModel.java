@@ -43,14 +43,6 @@ public class CarRentalModel {
 	}
 
 	public Set<String> getCarTypesNames(EntityManager em, String crcName) {
-		// CarRentalCompany crc = em.find(CarRentalCompany.class, crcName);
-		// Collection<CarType> carTypes = crc.getAllCarTypes();
-		// Set<String> carTypeNames = new HashSet<>();
-		// for (CarType carType : carTypes) {
-		// carTypeNames.add(carType.getName());
-		// }
-		// return carTypeNames;
-
 		List<String> carTypeNames = em.createNamedQuery("CarType.namesInCompany", String.class)
 				.setParameter("companyKey", CarRentalCompany.getKey(crcName)).getResultList();
 		return new HashSet<String>(carTypeNames);
@@ -193,19 +185,22 @@ public class CarRentalModel {
 	public List<Reservation> getReservations(String renter) {
 		// FIXME: use persistence instead
 
-		List<Reservation> out = new ArrayList<Reservation>();
-
-		for (CarRentalCompany crc : getAllRentalCompanies()) {
-			for (Car c : crc.getCars()) {
-				for (Reservation r : c.getReservations()) {
-					if (r.getCarRenter().equals(renter)) {
-						out.add(r);
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			List<Reservation> out = new ArrayList<Reservation>();
+			for (CarRentalCompany crc : getAllRentalCompanies(em)) {
+				for (Car c : crc.getCars()) {
+					for (Reservation r : c.getReservations()) {
+						if (r.getCarRenter().equals(renter)) {
+							out.add(r);
+						}
 					}
 				}
 			}
+			return out;
+		} finally {
+			em.close();
 		}
-
-		return out;
 	}
 
 	/**
@@ -269,15 +264,20 @@ public class CarRentalModel {
 	private List<Car> getCarsByCarType(String crcName, CarType carType) {
 		// FIXME: use persistence instead
 
-		List<Car> out = new ArrayList<Car>();
-		for (CarRentalCompany crc : getAllRentalCompanies()) {
-			for (Car c : crc.getCars()) {
-				if (c.getType() == carType) {
-					out.add(c);
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			List<Car> out = new ArrayList<Car>();
+			for (CarRentalCompany crc : getAllRentalCompanies(em)) {
+				for (Car c : crc.getCars()) {
+					if (c.getType() == carType) {
+						out.add(c);
+					}
 				}
 			}
+			return out;
+		} finally {
+			em.close();
 		}
-		return out;
 	}
 
 	/**
@@ -291,4 +291,5 @@ public class CarRentalModel {
 	public boolean hasReservations(String renter) {
 		return this.getReservations(renter).size() > 0;
 	}
+
 }

@@ -5,8 +5,6 @@ import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 
-import org.datanucleus.api.jpa.annotations.Extension;
-
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 
@@ -17,26 +15,17 @@ public class CarType {
 
 	public static final String KIND = "CarType";
 
-	/*
+	/**
 	 * CarType is identified by (CarRentalCompany, carTypeName).
 	 * CarRentalCompany is identified by (companyName).
 	 * 
-	 * Since all these values are known at construction, the complete key can be
-	 * created right away.
+	 * Since all these values are known at construction, the complete
+	 * {@link Key} can be created right away.
 	 * 
-	 * As we still want to query on the company, we use the extensions to
-	 * decompose the key into fields. These fields can then be used in JPQL
-	 * queries.
+	 * TODO How can we query on the parent company key?
 	 */
 	@Id
-	@Extension(vendorName = "datanucleus", key = "gae.encoded-pk", value = "true")
-	private String encodedKey;
-
-	@Extension(vendorName = "datanucleus", key = "gae.parent-pk", value = "true")
-	private Key companyKey;
-
-	@Extension(vendorName = "datanucleus", key = "gae.pk-name", value = "true")
-	private String name;
+	private Key key;
 
 	private int nbOfSeats;
 	private boolean smokingAllowed;
@@ -53,9 +42,7 @@ public class CarType {
 
 	public CarType(String companyName, String name, int nbOfSeats, float trunkSpace,
 			double rentalPricePerDay, boolean smokingAllowed) {
-		this.companyKey = CarRentalCompany.getKey(companyName);
-		this.name = name;
-		this.encodedKey = KeyFactory.keyToString(getKey(companyName, name));
+		this.key = getKey(companyName, name);
 		this.nbOfSeats = nbOfSeats;
 		this.trunkSpace = trunkSpace;
 		this.rentalPricePerDay = rentalPricePerDay;
@@ -63,7 +50,7 @@ public class CarType {
 	}
 
 	public Key getKey() {
-		return KeyFactory.stringToKey(encodedKey);
+		return key;
 	}
 
 	public static Key getKey(String companyName, String name) {
@@ -71,7 +58,7 @@ public class CarType {
 	}
 
 	public String getName() {
-		return name;
+		return key.getName();
 	}
 
 	public int getNbOfSeats() {
@@ -105,7 +92,7 @@ public class CarType {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((encodedKey == null) ? 0 : encodedKey.hashCode());
+		result = prime * result + ((key == null) ? 0 : key.hashCode());
 		return result;
 	}
 
@@ -118,10 +105,10 @@ public class CarType {
 		if (getClass() != obj.getClass())
 			return false;
 		CarType other = (CarType) obj;
-		if (encodedKey == null) {
-			if (other.encodedKey != null)
+		if (key == null) {
+			if (other.key != null)
 				return false;
-		} else if (!encodedKey.equals(other.encodedKey))
+		} else if (!key.equals(other.key))
 			return false;
 		return true;
 	}

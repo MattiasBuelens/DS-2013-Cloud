@@ -4,6 +4,7 @@ import java.util.Date;
 
 import javax.jdo.annotations.Embedded;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -16,19 +17,21 @@ public class Reservation {
 
 	public static final String KIND = "Reservation";
 
-	/*
+	/**
 	 * Reservation is identified by (Car, ReservationID).
 	 * 
-	 * Since this is a child object, we cannot use an @Id long. Thus, we have to
-	 * use a Key. Luckily, GAE can still auto-generate one for us.
+	 * Since this is a child object, we cannot use an {@code @Id long}. Thus, we
+	 * have to use a {@link Key}. Luckily, GAE can still auto-generate one for
+	 * us.
 	 * 
-	 * The parent key is set through the owned many-to-one relation with Car.
+	 * The parent key is set through the owned many-to-one relation with
+	 * {@link Car}.
 	 */
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Key key;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.EAGER)
 	private Car car;
 
 	@Embedded

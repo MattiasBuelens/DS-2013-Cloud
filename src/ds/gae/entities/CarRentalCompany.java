@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -20,6 +21,7 @@ import javax.persistence.OneToMany;
 
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.datanucleus.annotations.Unowned;
 
 import ds.gae.ReservationException;
 
@@ -34,18 +36,29 @@ public class CarRentalCompany {
 
 	private static final Logger logger = Logger.getLogger(CarRentalCompany.class.getName());
 
-	/*
+	/**
 	 * CarRentalCompany is identified by (companyName).
 	 * 
-	 * Since this is a root entity, a simple @Id String does the trick.
+	 * Since this is a root entity, a simple {@code @Id String} does the trick.
 	 */
 	@Id
 	private String name;
 
-	@OneToMany(cascade = CascadeType.ALL)
+	/**
+	 * All car types in this company.
+	 */
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	private Map<String, CarType> carTypes = new HashMap<String, CarType>();
 
-	@OneToMany(cascade = CascadeType.ALL)
+	/**
+	 * All cars in this company.
+	 * 
+	 * This relation is unowned, as the {@link CarType} already owns the
+	 * {@link Car}s. Since we already own {@link CarType}s, we indirectly also
+	 * own the {@link Car}s anyway.
+	 */
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@Unowned
 	private Set<Car> cars = new HashSet<Car>();
 
 	/***************

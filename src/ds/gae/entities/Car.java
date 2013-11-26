@@ -6,37 +6,52 @@ import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
+import org.datanucleus.api.jpa.annotations.Extension;
+
 import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.datanucleus.annotations.Unowned;
 
 @Entity(name = Car.KIND)
 public class Car {
 
 	public static final String KIND = "Car";
 
-	/*
+	/**
 	 * Car is identified by (CarType, CarID).
 	 * 
-	 * Since this is a child object, we cannot use an @Id long. Thus, we have to
-	 * use a Key. Luckily, GAE can still auto-generate one for us.
+	 * Since this is a child object, we cannot use an {@code @Id long}. Thus, we
+	 * have to use a {@link Key}. Luckily, GAE can still auto-generate one for
+	 * us.
 	 * 
 	 * The parent key is set through the owned many-to-one relation with
-	 * CarType.
+	 * {@link CarType}.
 	 */
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Key key;
+	@Extension(vendorName = "datanucleus", key = "gae.encoded-pk", value = "true")
+	private String encodedKey;
 
-	@ManyToOne
+	@Extension(vendorName = "datanucleus", key = "gae.parent-pk", value = "true")
+	private Key carTypeKey;
+
+	/*
+	 * TODO Can we fetch the parent entity from our own key instead of needing
+	 * an extra field?
+	 */
+	@ManyToOne(fetch = FetchType.EAGER)
+	@Unowned
 	private CarType carType;
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "car")
-	private Set<Reservation> reservations;
+	private Set<Reservation> reservations = new HashSet<Reservation>();
 
 	/***************
 	 * CONSTRUCTOR *
@@ -47,6 +62,7 @@ public class Car {
 
 	public Car(CarType type) {
 		this.carType = type;
+		this.carTypeKey = type.getKey();
 		this.reservations = new HashSet<Reservation>();
 	}
 
@@ -55,7 +71,7 @@ public class Car {
 	 ******/
 
 	public Key getKey() {
-		return key;
+		return KeyFactory.stringToKey(encodedKey);
 	}
 
 	public long getId() {

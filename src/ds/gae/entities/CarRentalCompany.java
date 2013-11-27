@@ -116,8 +116,12 @@ public class CarRentalCompany {
 		return carTypeMap;
 	}
 
+	public boolean hasCarType(String carTypeName) {
+		return getCarTypeMap().containsKey(carTypeName);
+	}
+
 	public CarType getCarType(String carTypeName) {
-		if (getCarTypeMap().containsKey(carTypeName))
+		if (hasCarType(carTypeName))
 			return getCarTypeMap().get(carTypeName);
 		throw new IllegalArgumentException("<" + carTypeName + "> No car type of name "
 				+ carTypeName);
@@ -126,7 +130,7 @@ public class CarRentalCompany {
 	public boolean isAvailable(String carTypeName, Date start, Date end) {
 		logger.log(Level.INFO, "<{0}> Checking availability for car type {1}", new Object[] { name,
 				carTypeName });
-		if (getCarTypeMap().containsKey(carTypeName))
+		if (hasCarType(carTypeName))
 			return getAvailableCarTypes(start, end).contains(getCarTypeMap().get(carTypeName));
 		throw new IllegalArgumentException("<" + carTypeName + "> No car type of name "
 				+ carTypeName);
@@ -143,7 +147,7 @@ public class CarRentalCompany {
 	}
 
 	protected void addCarType(CarType carType) {
-		if (!getCarTypeMap().containsKey(carType.getName())) {
+		if (!hasCarType(carType.getName())) {
 			getCarTypeMap().put(carType.getName(), carType);
 			carTypes.add(carType);
 		}

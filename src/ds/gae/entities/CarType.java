@@ -5,6 +5,8 @@ import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 
+import org.datanucleus.api.jpa.annotations.Extension;
+
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 
@@ -21,11 +23,20 @@ public class CarType {
 	 * 
 	 * Since all these values are known at construction, the complete
 	 * {@link Key} can be created right away.
-	 * 
-	 * TODO How can we query on the parent company key?
 	 */
 	@Id
 	private Key key;
+
+	@Extension(vendorName = "datanucleus", key = "gae.parent-pk", value = "true")
+	private Key companyKey;
+
+	/**
+	 * Duplicated as field for querying purposes.
+	 * 
+	 * TODO Can we SELECT just (part of) the key in a JPQL query? That way, we
+	 * don't need to duplicate this field.
+	 */
+	private String name;
 
 	private int nbOfSeats;
 	private boolean smokingAllowed;
@@ -43,6 +54,7 @@ public class CarType {
 	public CarType(String companyName, String name, int nbOfSeats, float trunkSpace,
 			double rentalPricePerDay, boolean smokingAllowed) {
 		this.key = getKey(companyName, name);
+		this.name = name;
 		this.nbOfSeats = nbOfSeats;
 		this.trunkSpace = trunkSpace;
 		this.rentalPricePerDay = rentalPricePerDay;
@@ -58,7 +70,7 @@ public class CarType {
 	}
 
 	public String getName() {
-		return key.getName();
+		return name;
 	}
 
 	public int getNbOfSeats() {

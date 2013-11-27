@@ -46,7 +46,7 @@ public class Car {
 	 * TODO Can we fetch the parent entity from our own key instead of needing
 	 * an extra field?
 	 */
-	@ManyToOne(fetch = FetchType.EAGER)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@Unowned
 	private CarType carType;
 
@@ -61,8 +61,7 @@ public class Car {
 	}
 
 	public Car(CarType type) {
-		this.carType = type;
-		this.carTypeKey = type.getKey();
+		setType(type);
 		this.reservations = new HashSet<Reservation>();
 	}
 
@@ -88,6 +87,7 @@ public class Car {
 
 	protected void setType(CarType type) {
 		carType = type;
+		carTypeKey = type.getKey();
 	}
 
 	/****************

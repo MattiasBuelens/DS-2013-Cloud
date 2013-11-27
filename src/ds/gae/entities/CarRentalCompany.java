@@ -1,6 +1,7 @@
 package ds.gae.entities;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,11 +14,11 @@ import java.util.logging.Logger;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.Transient;
 
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
@@ -47,8 +48,11 @@ public class CarRentalCompany {
 	/**
 	 * All car types in this company.
 	 */
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-	private Map<String, CarType> carTypes = new HashMap<String, CarType>();
+	@OneToMany(cascade = CascadeType.ALL)
+	private Set<CarType> carTypes = new HashSet<CarType>();
+
+	@Transient
+	private transient Map<String, CarType> carTypeMap = null;
 
 	/**
 	 * All cars in this company.
@@ -57,7 +61,7 @@ public class CarRentalCompany {
 	 * {@link Car}s. Since we already own {@link CarType}s, we indirectly also
 	 * own the {@link Car}s anyway.
 	 */
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@OneToMany(cascade = CascadeType.ALL)
 	@Unowned
 	private Set<Car> cars = new HashSet<Car>();
 
@@ -98,12 +102,23 @@ public class CarRentalCompany {
 	 *************/
 
 	public Collection<CarType> getAllCarTypes() {
-		return carTypes.values();
+		return Collections.unmodifiableSet(carTypes);
+	}
+
+	protected Map<String, CarType> getCarTypeMap() {
+		if (carTypeMap == null) {
+			// Lazily fill map from set
+			carTypeMap = new HashMap<String, CarType>();
+			for (CarType carType : getAllCarTypes()) {
+				carTypeMap.put(carType.getName(), carType);
+			}
+		}
+		return carTypeMap;
 	}
 
 	public CarType getCarType(String carTypeName) {
-		if (carTypes.containsKey(carTypeName))
-			return carTypes.get(carTypeName);
+		if (getCarTypeMap().containsKey(carTypeName))
+			return getCarTypeMap().get(carTypeName);
 		throw new IllegalArgumentException("<" + carTypeName + "> No car type of name "
 				+ carTypeName);
 	}
@@ -111,8 +126,8 @@ public class CarRentalCompany {
 	public boolean isAvailable(String carTypeName, Date start, Date end) {
 		logger.log(Level.INFO, "<{0}> Checking availability for car type {1}", new Object[] { name,
 				carTypeName });
-		if (carTypes.containsKey(carTypeName))
-			return getAvailableCarTypes(start, end).contains(carTypes.get(carTypeName));
+		if (getCarTypeMap().containsKey(carTypeName))
+			return getAvailableCarTypes(start, end).contains(getCarTypeMap().get(carTypeName));
 		throw new IllegalArgumentException("<" + carTypeName + "> No car type of name "
 				+ carTypeName);
 	}
@@ -128,13 +143,15 @@ public class CarRentalCompany {
 	}
 
 	protected void addCarType(CarType carType) {
-		if (!carTypes.containsKey(carType.getName())) {
-			carTypes.put(carType.getName(), carType);
+		if (!getCarTypeMap().containsKey(carType.getName())) {
+			getCarTypeMap().put(carType.getName(), carType);
+			carTypes.add(carType);
 		}
 	}
 
 	protected void removeCarType(CarType carType) {
-		carTypes.remove(carType.getName());
+		carTypes.remove(carType);
+		getCarTypeMap().remove(carType.getName());
 	}
 
 	/*********

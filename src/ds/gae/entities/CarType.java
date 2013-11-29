@@ -11,8 +11,11 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 
 @Entity(name = CarType.KIND)
-@NamedQueries({ @NamedQuery(name = "CarType.namesInCompany",
-		query = "SELECT ct.name FROM CarType ct WHERE companyKey = :companyKey") })
+@NamedQueries({
+		@NamedQuery(name = "CarType.byCompany",
+				query = "SELECT ct FROM CarType ct WHERE companyKey = :companyKey"),
+		@NamedQuery(name = "CarType.namesByCompany",
+				query = "SELECT ct.name FROM CarType ct WHERE companyKey = :companyKey") })
 public class CarType {
 
 	public static final String KIND = "CarType";

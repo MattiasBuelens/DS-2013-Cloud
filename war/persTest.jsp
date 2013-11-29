@@ -95,7 +95,7 @@ for (String crc : CarRentalModel.get().getAllRentalCompanyNames()) {
 						<td><%= t.getRentalPricePerDay() %></td>
 						<td width="300px" style="text-align: left;">
 		<% 
-		for (int i : CarRentalModel.get().getCarIdsByCarType(crc, t)) {
+		for (long i : CarRentalModel.get().getCarIdsByCarType(crc, t)) {
 		%>
 			<%= i %>
 		<%

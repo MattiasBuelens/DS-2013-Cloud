@@ -44,7 +44,7 @@ public class CarRentalModel {
 	}
 
 	public Set<String> getCarTypesNames(EntityManager em, String crcName) {
-		List<String> carTypeNames = em.createNamedQuery("CarType.namesInCompany", String.class)
+		List<String> carTypeNames = em.createNamedQuery("CarType.namesByCompany", String.class)
 				.setParameter("companyKey", CarRentalCompany.getKey(crcName)).getResultList();
 		return new HashSet<String>(carTypeNames);
 	}
@@ -126,13 +126,11 @@ public class CarRentalModel {
 		EntityManager em = EMF.get().createEntityManager();
 		try {
 			CarRentalCompany crc = getRentalCompany(em, company);
-			Quote out = null;
 			if (crc != null) {
-				out = crc.createQuote(constraints, renterName);
+				return crc.createQuote(constraints, renterName);
 			} else {
 				throw new ReservationException("CarRentalCompany not found.");
 			}
-			return out;
 		} finally {
 			em.close();
 		}
@@ -210,7 +208,8 @@ public class CarRentalModel {
 	}
 
 	private List<Reservation> getReservations(String renter, EntityManager em) {
-		return em.createNamedQuery("Car.reservationsFromRenter", Reservation.class).setParameter("renter", renter).getResultList();
+		return em.createNamedQuery("Reservation.byRenter", Reservation.class)
+				.setParameter("renter", renter).getResultList();
 	}
 
 	/**
@@ -221,6 +220,10 @@ public class CarRentalModel {
 	 * @return The list of car types in the given car rental company.
 	 */
 	public Collection<CarType> getCarTypesOfCarRentalCompany(String crcName) {
+		return getCarTypesOfCarRentalCompany_Query(crcName);
+	}
+
+	protected Collection<CarType> getCarTypesOfCarRentalCompany_Query(String crcName) {
 		EntityManager em = EMF.get().createEntityManager();
 		try {
 			return getCarTypesOfCarRentalCompany(crcName, em);
@@ -228,9 +231,24 @@ public class CarRentalModel {
 			em.close();
 		}
 	}
-	
+
 	private Collection<CarType> getCarTypesOfCarRentalCompany(String crcName, EntityManager em) {
-		return em.createNamedQuery("CarRentalCompany.allTypes", CarType.class).setParameter("crcName", crcName).getResultList();
+		return em.createNamedQuery("CarType.byCompany", CarType.class)
+				.setParameter("companyKey", CarRentalCompany.getKey(crcName)).getResultList();
+	}
+
+	/*
+	 * TODO Better? Two finds are usually faster than one query.
+	 * 
+	 * See: http://goo.gl/aEBVEC
+	 */
+	protected Collection<CarType> getCarTypesOfCarRentalCompany_TwoFinds(String crcName) {
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			return new ArrayList<CarType>(getRentalCompany(crcName).getAllCarTypes());
+		} finally {
+			em.close();
+		}
 	}
 
 	/**
@@ -243,10 +261,18 @@ public class CarRentalModel {
 	 *            the given car type
 	 * @return A list of car IDs of cars with the given car type.
 	 */
-	public Collection<Integer> getCarIdsByCarType(String crcName, CarType carType) {
-		Collection<Integer> out = new ArrayList<Integer>();
+	/*
+	 * TODO This breaks the signature (was Collection<Integer>), are we allowed
+	 * to do this?
+	 * 
+	 * The Datastore uses 64-bit numerical IDs. We cannot fully represent these
+	 * in a 32-bit integer without losing information. Would this cause problems
+	 * for automated tests to be run on our code?
+	 */
+	public Collection<Long> getCarIdsByCarType(String crcName, CarType carType) {
+		Collection<Long> out = new ArrayList<Long>();
 		for (Car c : getCarsByCarType(crcName, carType)) {
-			out.add((int) c.getId());
+			out.add(c.getId());
 		}
 		return out;
 	}
@@ -265,16 +291,16 @@ public class CarRentalModel {
 		return this.getCarsByCarType(crcName, carType).size();
 	}
 
-	/*
+	/**
 	 * Get the list of cars of the given car type in the given car rental
 	 * company.
 	 * 
-	 * @param crcName name of the car rental company
-	 * 
-	 * @param carType the given car type
-	 * 
+	 * @param crcName
+	 *            name of the car rental company
+	 * @param carType
+	 *            the given car type
 	 * @return List of cars of the given car type (over all car rental
-	 * companies)
+	 *         companies)
 	 */
 	private Collection<Car> getCarsByCarType(String crcName, CarType carType) {
 		EntityManager em = EMF.get().createEntityManager();
@@ -286,7 +312,7 @@ public class CarRentalModel {
 	}
 
 	private Collection<Car> getCarsByCarType(String crcName, CarType carType, EntityManager em) {
-		return em.createNamedQuery("Car.fromType", Car.class)
+		return em.createNamedQuery("Car.byType", Car.class)
 				.setParameter("carTypeKey", carType.getKey()).getResultList();
 	}
 

@@ -25,10 +25,8 @@ import ds.gae.EMF;
 
 @Entity(name = Car.KIND)
 @NamedQueries({
-	@NamedQuery(name = "Car.fromType",
-		query = "SELECT c FROM Car c WHERE c.carTypeKey = :carTypeKey"),
-	@NamedQuery(name = "Car.reservationsFromRenter",
-		query = "SELECT res FROM Reservation res WHERE res.carRenter = :renter")
+	@NamedQuery(name = "Car.byType",
+		query = "SELECT c FROM Car c WHERE c.carTypeKey = :carTypeKey")
 })
 public class Car {
 

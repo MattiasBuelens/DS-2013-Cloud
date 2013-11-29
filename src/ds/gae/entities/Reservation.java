@@ -4,15 +4,21 @@ import java.util.Date;
 
 import javax.jdo.annotations.Embedded;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToOne;
 
 import org.datanucleus.api.jpa.annotations.Extension;
 
 import com.google.appengine.api.datastore.Key;
 
 @Entity(name = Reservation.KIND)
+@NamedQueries({ @NamedQuery(name = "Reservation.byRenter",
+		query = "SELECT res FROM Reservation res WHERE res.quote.carRenter = :renter") })
 public class Reservation {
 
 	public static final String KIND = "Reservation";
@@ -36,6 +42,7 @@ public class Reservation {
 	private Key carKey;
 
 	@Embedded
+	@OneToOne(fetch = FetchType.EAGER)
 	private Quote quote;
 
 	/***************

@@ -49,10 +49,7 @@ public class CarRentalCompany {
 	 * All car types in this company.
 	 */
 	@OneToMany(cascade = CascadeType.ALL)
-	private Set<CarType> carTypes = new HashSet<CarType>();
-
-	@Transient
-	private transient Map<String, CarType> carTypeMap = null;
+	private Map<String, CarType> carTypes = new HashMap<String, CarType>();
 
 	/**
 	 * All cars in this company.
@@ -102,27 +99,12 @@ public class CarRentalCompany {
 	 *************/
 
 	public Collection<CarType> getAllCarTypes() {
-		return Collections.unmodifiableSet(carTypes);
-	}
-
-	protected Map<String, CarType> getCarTypeMap() {
-		if (carTypeMap == null) {
-			// Lazily fill map from set
-			carTypeMap = new HashMap<String, CarType>();
-			for (CarType carType : getAllCarTypes()) {
-				carTypeMap.put(carType.getName(), carType);
-			}
-		}
-		return carTypeMap;
-	}
-
-	public boolean hasCarType(String carTypeName) {
-		return getCarTypeMap().containsKey(carTypeName);
+		return Collections.unmodifiableCollection(carTypes.values());
 	}
 
 	public CarType getCarType(String carTypeName) {
-		if (hasCarType(carTypeName))
-			return getCarTypeMap().get(carTypeName);
+		if (carTypes.containsKey(carTypeName))
+			return carTypes.get(carTypeName);
 		throw new IllegalArgumentException("<" + carTypeName + "> No car type of name "
 				+ carTypeName);
 	}
@@ -130,8 +112,8 @@ public class CarRentalCompany {
 	public boolean isAvailable(String carTypeName, Date start, Date end) {
 		logger.log(Level.INFO, "<{0}> Checking availability for car type {1}", new Object[] { name,
 				carTypeName });
-		if (hasCarType(carTypeName))
-			return getAvailableCarTypes(start, end).contains(getCarTypeMap().get(carTypeName));
+		if (carTypes.containsKey(carTypeName))
+			return getAvailableCarTypes(start, end).contains(carTypes.get(carTypeName));
 		throw new IllegalArgumentException("<" + carTypeName + "> No car type of name "
 				+ carTypeName);
 	}
@@ -147,15 +129,13 @@ public class CarRentalCompany {
 	}
 
 	protected void addCarType(CarType carType) {
-		if (!hasCarType(carType.getName())) {
-			getCarTypeMap().put(carType.getName(), carType);
-			carTypes.add(carType);
+		if (!carTypes.containsKey(carType.getName())) {
+			carTypes.put(carType.getName(), carType);
 		}
 	}
 
 	protected void removeCarType(CarType carType) {
-		carTypes.remove(carType);
-		getCarTypeMap().remove(carType.getName());
+		carTypes.remove(carType.getName());
 	}
 
 	/*********

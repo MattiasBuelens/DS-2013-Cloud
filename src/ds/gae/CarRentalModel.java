@@ -132,7 +132,6 @@ public class CarRentalModel {
 			} else {
 				throw new ReservationException("CarRentalCompany not found.");
 			}
-			em.persist(crc);
 			return out;
 		} finally {
 			em.close();
@@ -160,7 +159,6 @@ public class CarRentalModel {
 	public Reservation confirmQuote(EntityManager em, Quote q) throws ReservationException {
 		CarRentalCompany crc = getRentalCompany(em, q.getRentalCompany());
 		Reservation res = crc.confirmQuote(q);
-		em.persist(crc);
 		return res;
 	}
 
@@ -286,9 +284,10 @@ public class CarRentalModel {
 			em.close();
 		}
 	}
-	
+
 	private Collection<Car> getCarsByCarType(String crcName, CarType carType, EntityManager em) {
-		return em.createNamedQuery("Car.fromType", Car.class).setParameter(1, carType.getName()).getResultList();
+		return em.createNamedQuery("Car.fromType", Car.class)
+				.setParameter("carTypeKey", carType.getKey()).getResultList();
 	}
 
 	/**

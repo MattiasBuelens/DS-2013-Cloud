@@ -1,5 +1,6 @@
 package ds.gae.entities;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,8 +25,10 @@ import ds.gae.EMF;
 
 @Entity(name = Car.KIND)
 @NamedQueries({
-	@NamedQuery(name = "Car.fromType", query = "SELECT car FROM Car JOIN CarType ct WHERE ct.name = ?1"),
-	@NamedQuery(name = "Car.reservationsFromRenter", query = "SELECT res FROM Reservation res WHERE res.carRenter = :renter")
+	@NamedQuery(name = "Car.fromType",
+		query = "SELECT c FROM Car c WHERE c.carTypeKey = :carTypeKey"),
+	@NamedQuery(name = "Car.reservationsFromRenter",
+		query = "SELECT res FROM Reservation res WHERE res.carRenter = :renter")
 })
 public class Car {
 
@@ -111,7 +114,7 @@ public class Car {
 	 ****************/
 
 	public Set<Reservation> getReservations() {
-		return reservations;
+		return Collections.unmodifiableSet(reservations);
 	}
 
 	public boolean isAvailable(Date start, Date end) {

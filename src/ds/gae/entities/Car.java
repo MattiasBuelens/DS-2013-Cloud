@@ -10,6 +10,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 
@@ -21,6 +23,9 @@ import com.google.appengine.api.datastore.KeyFactory;
 import ds.gae.EMF;
 
 @Entity(name = Car.KIND)
+@NamedQueries({
+	@NamedQuery(name = "Car.fromType", query = "SELECT car FROM Car JOIN CarType ct WHERE ct.name = ?1")
+})
 public class Car {
 
 	public static final String KIND = "Car";

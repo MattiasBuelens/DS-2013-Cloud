@@ -261,23 +261,17 @@ public class CarRentalModel {
 	 * @return List of cars of the given car type (over all car rental
 	 * companies)
 	 */
-	private List<Car> getCarsByCarType(String crcName, CarType carType) {
-		// FIXME: use persistence instead
-
+	private Collection<Car> getCarsByCarType(String crcName, CarType carType) {
 		EntityManager em = EMF.get().createEntityManager();
 		try {
-			List<Car> out = new ArrayList<Car>();
-			for (CarRentalCompany crc : getAllRentalCompanies(em)) {
-				for (Car c : crc.getCars()) {
-					if (c.getType().equals(carType)) {
-						out.add(c);
-					}
-				}
-			}
-			return out;
+			return getCarsByCarType(crcName, carType, em);
 		} finally {
 			em.close();
 		}
+	}
+	
+	private Collection<Car> getCarsByCarType(String crcName, CarType carType, EntityManager em) {
+		return em.createNamedQuery("Car.fromType", Car.class).setParameter(1, carType.getName()).getResultList();
 	}
 
 	/**

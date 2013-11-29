@@ -203,24 +203,16 @@ public class CarRentalModel {
 	 * @return the list of reservations of the given car renter
 	 */
 	public List<Reservation> getReservations(String renter) {
-		// FIXME: use persistence instead
-
 		EntityManager em = EMF.get().createEntityManager();
 		try {
-			List<Reservation> out = new ArrayList<Reservation>();
-			for (CarRentalCompany crc : getAllRentalCompanies(em)) {
-				for (Car c : crc.getCars()) {
-					for (Reservation r : c.getReservations()) {
-						if (r.getCarRenter().equals(renter)) {
-							out.add(r);
-						}
-					}
-				}
-			}
-			return out;
+			return getReservations(renter, em);
 		} finally {
 			em.close();
 		}
+	}
+
+	private List<Reservation> getReservations(String renter, EntityManager em) {
+		return em.createNamedQuery("Car.reservationsFromRenter", Reservation.class).setParameter("renter", renter).getResultList();
 	}
 
 	/**
@@ -231,11 +223,16 @@ public class CarRentalModel {
 	 * @return The list of car types in the given car rental company.
 	 */
 	public Collection<CarType> getCarTypesOfCarRentalCompany(String crcName) {
-		// FIXME: use persistence instead
-
-		CarRentalCompany crc = getRentalCompany(crcName);
-		Collection<CarType> out = new ArrayList<CarType>(crc.getAllCarTypes());
-		return out;
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			return getCarTypesOfCarRentalCompany(crcName, em);
+		} finally {
+			em.close();
+		}
+	}
+	
+	private Collection<CarType> getCarTypesOfCarRentalCompany(String crcName, EntityManager em) {
+		return em.createNamedQuery("CarRentalCompany.allTypes", CarType.class).setParameter("crcName", crcName).getResultList();
 	}
 
 	/**

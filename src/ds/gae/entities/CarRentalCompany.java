@@ -29,7 +29,10 @@ import ds.gae.ReservationException;
 @NamedQueries({
 		@NamedQuery(name = "CarRentalCompany.all", query = "SELECT crc FROM CarRentalCompany crc"),
 		@NamedQuery(name = "CarRentalCompany.allNames",
-				query = "SELECT crc.name FROM CarRentalCompany crc") })
+				query = "SELECT crc.name FROM CarRentalCompany crc"),
+		@NamedQuery(name = "CarRentalCompany.allTypes",
+				query = "SELECT crc.type FROM CarRentalCompany crc WHERE crc.name = :crcName")		
+})
 public class CarRentalCompany {
 
 	public static final String KIND = "CarRentalCompany";

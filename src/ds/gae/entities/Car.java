@@ -1,5 +1,6 @@
 package ds.gae.entities;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -109,7 +110,7 @@ public class Car {
 	 ****************/
 
 	public Set<Reservation> getReservations() {
-		return reservations;
+		return Collections.unmodifiableSet(reservations);
 	}
 
 	public boolean isAvailable(Date start, Date end) {

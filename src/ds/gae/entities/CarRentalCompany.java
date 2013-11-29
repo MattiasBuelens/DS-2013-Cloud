@@ -18,7 +18,6 @@ import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-import javax.persistence.Transient;
 
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
@@ -122,7 +121,7 @@ public class CarRentalCompany {
 		Set<CarType> availableCarTypes = new HashSet<CarType>();
 		for (Car car : cars) {
 			if (car.isAvailable(start, end)) {
-				availableCarTypes.add(car.getType());
+				availableCarTypes.add(carTypes.get(car.getTypeName()));
 			}
 		}
 		return availableCarTypes;
@@ -146,10 +145,18 @@ public class CarRentalCompany {
 		return cars;
 	}
 
+	private Car getCar(long uid) {
+		for (Car car : cars) {
+			if (car.getId() == uid)
+				return car;
+		}
+		throw new IllegalArgumentException("<" + name + "> No car with uid " + uid);
+	}
+
 	private List<Car> getAvailableCars(String carType, Date start, Date end) {
 		List<Car> availableCars = new LinkedList<Car>();
 		for (Car car : cars) {
-			if (car.getType().getName().equals(carType) && car.isAvailable(start, end)) {
+			if (car.getTypeName().equals(carType) && car.isAvailable(start, end)) {
 				availableCars.add(car);
 			}
 		}
@@ -212,7 +219,7 @@ public class CarRentalCompany {
 	public void cancelReservation(Reservation res) {
 		logger.log(Level.INFO, "<{0}> Cancelling reservation {1}",
 				new Object[] { name, res.toString() });
-		res.getCar().removeReservation(res);
+		getCar(res.getCarId()).removeReservation(res);
 	}
 
 }

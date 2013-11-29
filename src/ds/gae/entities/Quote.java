@@ -1,12 +1,15 @@
 package ds.gae.entities;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.Basic;
 import javax.persistence.Embeddable;
 
 @Embeddable
-public class Quote {
+public class Quote implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	@Basic
 	private Date startDate;

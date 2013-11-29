@@ -269,7 +269,7 @@ public class CarRentalModel {
 			List<Car> out = new ArrayList<Car>();
 			for (CarRentalCompany crc : getAllRentalCompanies(em)) {
 				for (Car c : crc.getCars()) {
-					if (c.getType() == carType) {
+					if (c.getType().equals(carType)) {
 						out.add(c);
 					}
 				}

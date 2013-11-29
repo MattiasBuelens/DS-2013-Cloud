@@ -4,11 +4,11 @@ import java.util.Date;
 
 import javax.jdo.annotations.Embedded;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+
+import org.datanucleus.api.jpa.annotations.Extension;
 
 import com.google.appengine.api.datastore.Key;
 
@@ -29,10 +29,11 @@ public class Reservation {
 	 */
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Key key;
+	@Extension(vendorName = "datanucleus", key = "gae.encoded-pk", value = "true")
+	private String encodedKey;
 
-	@ManyToOne(fetch = FetchType.EAGER)
-	private Car car;
+	@Extension(vendorName = "datanucleus", key = "gae.parent-pk", value = "true")
+	private Key carKey;
 
 	@Embedded
 	private Quote quote;
@@ -44,21 +45,25 @@ public class Reservation {
 	protected Reservation() {
 	}
 
-	public Reservation(Quote quote, Car car) {
+	public Reservation(Quote quote, Key carKey) {
 		this.quote = quote;
-		this.car = car;
+		this.carKey = carKey;
+	}
+
+	public Reservation(Quote quote, Car car) {
+		this(quote, car.getKey());
 	}
 
 	/******
 	 * ID *
 	 ******/
 
-	public Car getCar() {
-		return car;
+	public Key getCarKey() {
+		return carKey;
 	}
 
 	public long getCarId() {
-		return getCar().getId();
+		return getCarKey().getId();
 	}
 
 	public Quote getQuote() {
@@ -105,8 +110,8 @@ public class Reservation {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((key == null) ? 0 : key.hashCode());
-		result = prime * result + ((car == null) ? 0 : car.hashCode());
+		result = prime * result + ((encodedKey == null) ? 0 : encodedKey.hashCode());
+		result = prime * result + ((carKey == null) ? 0 : carKey.hashCode());
 		result = prime * result + ((quote == null) ? 0 : quote.hashCode());
 		return result;
 	}
@@ -120,15 +125,15 @@ public class Reservation {
 		if (getClass() != obj.getClass())
 			return false;
 		Reservation other = (Reservation) obj;
-		if (key == null) {
-			if (other.key != null)
+		if (encodedKey == null) {
+			if (other.encodedKey != null)
 				return false;
-		} else if (!key.equals(other.key))
+		} else if (!encodedKey.equals(other.encodedKey))
 			return false;
-		if (car == null) {
-			if (other.car != null)
+		if (carKey == null) {
+			if (other.carKey != null)
 				return false;
-		} else if (!car.equals(other.car))
+		} else if (!carKey.equals(other.carKey))
 			return false;
 		if (quote == null) {
 			if (other.quote != null)

@@ -46,3 +46,7 @@ build.properties
 *.jar
 *.war
 *.ear
+
+### GAE ###
+war/WEB-INF/appengine-generated/
+war/WEB-INF/classes/

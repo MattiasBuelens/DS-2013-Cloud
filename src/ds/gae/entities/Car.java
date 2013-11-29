@@ -6,18 +6,19 @@ import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
+import javax.persistence.EntityManager;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.Transient;
 
 import org.datanucleus.api.jpa.annotations.Extension;
 
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.datanucleus.annotations.Unowned;
+
+import ds.gae.EMF;
 
 @Entity(name = Car.KIND)
 public class Car {
@@ -42,15 +43,10 @@ public class Car {
 	@Extension(vendorName = "datanucleus", key = "gae.parent-pk", value = "true")
 	private Key carTypeKey;
 
-	/*
-	 * TODO Can we fetch the parent entity from our own key instead of needing
-	 * an extra field?
-	 */
-	@ManyToOne(fetch = FetchType.LAZY)
-	@Unowned
+	@Transient
 	private CarType carType;
 
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "car")
+	@OneToMany(cascade = CascadeType.ALL)
 	private Set<Reservation> reservations = new HashSet<Reservation>();
 
 	/***************
@@ -60,8 +56,13 @@ public class Car {
 	protected Car() {
 	}
 
-	public Car(CarType type) {
-		setType(type);
+	public Car(CarType carType) {
+		this(carType.getKey());
+		this.carType = carType;
+	}
+
+	public Car(Key carTypeKey) {
+		this.carTypeKey = carTypeKey;
 		this.reservations = new HashSet<Reservation>();
 	}
 
@@ -81,13 +82,22 @@ public class Car {
 	 * CAR TYPE *
 	 ************/
 
-	public CarType getType() {
-		return carType;
+	public Key getTypeKey() {
+		return carTypeKey;
 	}
 
-	protected void setType(CarType type) {
-		carType = type;
-		carTypeKey = type.getKey();
+	public String getTypeName() {
+		return getTypeKey().getName();
+	}
+
+	public CarType getType() {
+		if (carType == null && carTypeKey != null) {
+			// Manual lazy-loading
+			EntityManager emf = EMF.get().createEntityManager();
+			carType = emf.find(CarType.class, carTypeKey);
+			emf.close();
+		}
+		return carType;
 	}
 
 	/****************
@@ -121,7 +131,7 @@ public class Car {
 
 	@Override
 	public String toString() {
-		return "Car [carType=" + carType + ", reservations=" + reservations + "]";
+		return "Car [carType=" + getTypeName() + ", reservations=" + reservations + "]";
 	}
 
 }

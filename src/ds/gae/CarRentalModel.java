@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 
 import ds.gae.entities.Car;
 import ds.gae.entities.CarRentalCompany;
@@ -147,19 +148,24 @@ public class CarRentalModel {
 	 * @throws ReservationException
 	 *             Confirmation of given quote failed.
 	 */
-	public void confirmQuote(Quote q) throws ReservationException {
+	public Reservation confirmQuote(Quote q) throws ReservationException {
 		EntityManager em = EMF.get().createEntityManager();
 		try {
-			CarRentalCompany crc = getRentalCompany(em, q.getRentalCompany());
-			crc.confirmQuote(q);
-			em.persist(crc);
+			return confirmQuote(em, q);
 		} finally {
 			em.close();
 		}
 	}
 
+	public Reservation confirmQuote(EntityManager em, Quote q) throws ReservationException {
+		CarRentalCompany crc = getRentalCompany(em, q.getRentalCompany());
+		Reservation res = crc.confirmQuote(q);
+		em.persist(crc);
+		return res;
+	}
+
 	/**
-	 * Confirm the given list of quotes
+	 * Confirm the given list of quotes.
 	 * 
 	 * @param quotes
 	 *            the quotes to confirm
@@ -171,8 +177,22 @@ public class CarRentalModel {
 	 *             given quotes is confirmed.
 	 */
 	public List<Reservation> confirmQuotes(List<Quote> quotes) throws ReservationException {
-		// TODO add implementation
-		return null;
+		EntityManager em = EMF.get().createEntityManager();
+		EntityTransaction t = em.getTransaction();
+		try {
+			t.begin();
+			List<Reservation> reservations = new ArrayList<Reservation>();
+			for (Quote q : quotes) {
+				reservations.add(confirmQuote(em, q));
+			}
+			t.commit();
+			return reservations;
+		} catch (ReservationException e) {
+			t.setRollbackOnly();
+			throw e;
+		} finally {
+			em.close();
+		}
 	}
 
 	/**

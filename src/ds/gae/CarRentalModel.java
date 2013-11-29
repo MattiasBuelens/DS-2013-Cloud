@@ -67,23 +67,17 @@ public class CarRentalModel {
 		return em.createNamedQuery("CarRentalCompany.allNames", String.class).getResultList();
 	}
 
-	public Collection<CarRentalCompany> getAllRentalCompanies() {
+	/**
+	 * Get the rental company with the given name.
+	 * 
+	 * @param crcName
+	 *            name of the car rental company
+	 * @return The car rental company, or null if not found.
+	 */
+	public CarRentalCompany getRentalCompany(String crcName) {
 		EntityManager em = EMF.get().createEntityManager();
 		try {
-			return getAllRentalCompanies(em);
-		} finally {
-			em.close();
-		}
-	}
-
-	protected Collection<CarRentalCompany> getAllRentalCompanies(EntityManager em) {
-		return em.createNamedQuery("CarRentalCompany.all", CarRentalCompany.class).getResultList();
-	}
-
-	public CarRentalCompany getRentalCompany(String company) {
-		EntityManager em = EMF.get().createEntityManager();
-		try {
-			return getRentalCompany(em, company);
+			return getRentalCompany(em, crcName);
 		} finally {
 			em.close();
 		}
@@ -93,6 +87,12 @@ public class CarRentalModel {
 		return em.find(CarRentalCompany.class, company);
 	}
 
+	/**
+	 * Register a car rental company.
+	 * 
+	 * @param company
+	 *            new car rental company
+	 */
 	public void addRentalCompany(CarRentalCompany company) {
 		EntityManager em = EMF.get().createEntityManager();
 		try {
@@ -141,7 +141,6 @@ public class CarRentalModel {
 	 * 
 	 * @param q
 	 *            Quote to confirm
-	 * 
 	 * @throws ReservationException
 	 *             Confirmation of given quote failed.
 	 */

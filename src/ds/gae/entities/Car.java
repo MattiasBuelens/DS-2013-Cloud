@@ -23,9 +23,8 @@ import com.google.appengine.api.datastore.KeyFactory;
 import ds.gae.EMF;
 
 @Entity(name = Car.KIND)
-@NamedQueries({
-	@NamedQuery(name = "Car.fromType", query = "SELECT car FROM Car JOIN CarType ct WHERE ct.name = ?1")
-})
+@NamedQueries({ @NamedQuery(name = "Car.fromType",
+		query = "SELECT c FROM Car c WHERE c.carTypeKey = :carTypeKey") })
 public class Car {
 
 	public static final String KIND = "Car";

@@ -289,9 +289,10 @@ public class CarRentalModel {
 			em.close();
 		}
 	}
-	
+
 	private Collection<Car> getCarsByCarType(String crcName, CarType carType, EntityManager em) {
-		return em.createNamedQuery("Car.fromType", Car.class).setParameter(1, carType.getName()).getResultList();
+		return em.createNamedQuery("Car.fromType", Car.class)
+				.setParameter("carTypeKey", carType.getKey()).getResultList();
 	}
 
 	/**

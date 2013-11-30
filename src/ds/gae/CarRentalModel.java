@@ -2,11 +2,14 @@ package ds.gae;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 
 import ds.gae.entities.Car;
 import ds.gae.entities.CarRentalCompany;
@@ -171,18 +174,77 @@ public class CarRentalModel {
 	 *             given quotes is confirmed.
 	 */
 	public List<Reservation> confirmQuotes(List<Quote> quotes) throws ReservationException {
+		// Group the quotes by company
+		Map<String, List<Quote>> groupedQuotes = groupQuotesByCompany(quotes);
 		List<Reservation> reservations = new ArrayList<Reservation>();
 		try {
-			for (Quote q : quotes) {
-				reservations.add(confirmQuote(q));
+			// Confirm each group (in a transaction)
+			for (List<Quote> group : groupedQuotes.values()) {
+				reservations.addAll(confirmQuotesInCompany(group));
 			}
 			return reservations;
 		} catch (ReservationException e) {
+			// Cancel the committed reservations (outside of a transaction)
 			for (Reservation res : reservations) {
 				cancelReservation(res);
 			}
 			throw e;
 		}
+	}
+
+	/**
+	 * Confirm the given list of quotes <strong>for one company</strong>.
+	 * 
+	 * @param quotes
+	 *            the quotes to confirm
+	 * @return The list of reservations, resulting from confirming all given
+	 *         quotes.
+	 * @throws ReservationException
+	 *             One of the quotes cannot be confirmed. Therefore none of the
+	 *             given quotes is confirmed.
+	 */
+	protected List<Reservation> confirmQuotesInCompany(List<Quote> quotes)
+			throws ReservationException {
+		EntityManager em = EMF.get().createEntityManager();
+		EntityTransaction t = em.getTransaction();
+		try {
+			// Confirm the quotes inside a transaction
+			// This is allowed, as all the reservations belong to the same
+			// entity group (with the owning company as root entity)
+			t.begin();
+			List<Reservation> reservations = new ArrayList<>();
+			for (Quote q : quotes) {
+				reservations.add(confirmQuote(em, q));
+			}
+			t.commit();
+			return reservations;
+		} catch (ReservationException e) {
+			// Roll back the transaction
+			t.rollback();
+			throw e;
+		} finally {
+			em.close();
+		}
+	}
+
+	/**
+	 * Group the given quotes by company.
+	 * 
+	 * @param quotes
+	 *            the quotes to group
+	 * @return A map of grouped quotes with the company name as keys.
+	 */
+	protected Map<String, List<Quote>> groupQuotesByCompany(Collection<Quote> quotes) {
+		Map<String, List<Quote>> groupedQuotes = new HashMap<>();
+		for (Quote quote : quotes) {
+			List<Quote> group = groupedQuotes.get(quote.getRentalCompany());
+			if (group == null) {
+				group = new ArrayList<>();
+				groupedQuotes.put(quote.getRentalCompany(), group);
+			}
+			group.add(quote);
+		}
+		return groupedQuotes;
 	}
 
 	/**

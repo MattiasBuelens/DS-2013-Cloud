@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
 
 import ds.gae.entities.Car;
 import ds.gae.entities.CarRentalCompany;
@@ -172,22 +171,38 @@ public class CarRentalModel {
 	 *             given quotes is confirmed.
 	 */
 	public List<Reservation> confirmQuotes(List<Quote> quotes) throws ReservationException {
-		EntityManager em = EMF.get().createEntityManager();
-		EntityTransaction t = em.getTransaction();
+		List<Reservation> reservations = new ArrayList<Reservation>();
 		try {
-			t.begin();
-			List<Reservation> reservations = new ArrayList<Reservation>();
 			for (Quote q : quotes) {
-				reservations.add(confirmQuote(em, q));
+				reservations.add(confirmQuote(q));
 			}
-			t.commit();
 			return reservations;
 		} catch (ReservationException e) {
-			t.setRollbackOnly();
+			for (Reservation res : reservations) {
+				cancelReservation(res);
+			}
 			throw e;
+		}
+	}
+
+	/**
+	 * Cancel the given reservation.
+	 * 
+	 * @param res
+	 *            the reservation to confirm
+	 */
+	public void cancelReservation(Reservation res) {
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			cancelReservation(em, res);
 		} finally {
 			em.close();
 		}
+	}
+
+	protected void cancelReservation(EntityManager em, Reservation res) {
+		CarRentalCompany crc = getRentalCompany(em, res.getRentalCompany());
+		crc.cancelReservation(res);
 	}
 
 	/**

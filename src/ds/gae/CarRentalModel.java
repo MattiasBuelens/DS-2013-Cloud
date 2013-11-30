@@ -11,6 +11,9 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
+
 import ds.gae.entities.Car;
 import ds.gae.entities.CarRentalCompany;
 import ds.gae.entities.CarType;
@@ -346,11 +349,31 @@ public class CarRentalModel {
 	 * for automated tests to be run on our code?
 	 */
 	public Collection<Long> getCarIdsByCarType(String crcName, CarType carType) {
+		Collection<Key> keys = getCarKeysByCarType(crcName, carType);
 		Collection<Long> out = new ArrayList<Long>();
-		for (Car c : getCarsByCarType(crcName, carType)) {
-			out.add(c.getId());
+		for (Key key : keys) {
+			out.add(key.getId());
 		}
 		return out;
+	}
+
+	protected Collection<Key> getCarKeysByCarType(String crcName, CarType carType) {
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			return getCarKeysByCarType(em, crcName, carType);
+		} finally {
+			em.close();
+		}
+	}
+
+	protected Collection<Key> getCarKeysByCarType(EntityManager em, String crcName, CarType carType) {
+		List<String> encodedKeys = em.createNamedQuery("Car.keyByType", String.class)
+				.setParameter("carTypeKey", carType.getKey()).getResultList();
+		List<Key> keys = new ArrayList<>();
+		for (String encodedKey : encodedKeys) {
+			keys.add(KeyFactory.stringToKey(encodedKey));
+		}
+		return keys;
 	}
 
 	/**
@@ -364,7 +387,17 @@ public class CarRentalModel {
 	 * @return A number, representing the amount of cars of the given car type.
 	 */
 	public int getAmountOfCarsByCarType(String crcName, CarType carType) {
-		return this.getCarsByCarType(crcName, carType).size();
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			return (int) getAmountOfCarsByCarType(em, crcName, carType);
+		} finally {
+			em.close();
+		}
+	}
+
+	protected long getAmountOfCarsByCarType(EntityManager em, String crcName, CarType carType) {
+		return em.createNamedQuery("Car.countByType", Long.class)
+				.setParameter("carTypeKey", carType.getKey()).getSingleResult();
 	}
 
 	/**
@@ -378,7 +411,7 @@ public class CarRentalModel {
 	 * @return List of cars of the given car type (over all car rental
 	 *         companies)
 	 */
-	private Collection<Car> getCarsByCarType(String crcName, CarType carType) {
+	protected Collection<Car> getCarsByCarType(String crcName, CarType carType) {
 		EntityManager em = EMF.get().createEntityManager();
 		try {
 			return getCarsByCarType(em, crcName, carType);
@@ -393,6 +426,28 @@ public class CarRentalModel {
 	}
 
 	/**
+	 * Get the amount of reservations by the given car renter.
+	 * 
+	 * @param renter
+	 *            the car renter
+	 * @return A number, representing the amount of reservations by the given
+	 *         car renter.
+	 */
+	public int getAmountOfReservations(String renter) {
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			return (int) getAmountOfReservations(em, renter);
+		} finally {
+			em.close();
+		}
+	}
+
+	protected long getAmountOfReservations(EntityManager em, String renter) {
+		return em.createNamedQuery("Reservation.countByRenter", Long.class)
+				.setParameter("renter", renter).getSingleResult();
+	}
+
+	/**
 	 * Check whether the given car renter has reservations.
 	 * 
 	 * @param renter
@@ -401,7 +456,7 @@ public class CarRentalModel {
 	 *         higher than 0. False otherwise.
 	 */
 	public boolean hasReservations(String renter) {
-		return this.getReservations(renter).size() > 0;
+		return getAmountOfReservations(renter) > 0;
 	}
 
 }

@@ -17,8 +17,12 @@ import org.datanucleus.api.jpa.annotations.Extension;
 import com.google.appengine.api.datastore.Key;
 
 @Entity(name = Reservation.KIND)
-@NamedQueries({ @NamedQuery(name = "Reservation.byRenter",
-		query = "SELECT res FROM Reservation res WHERE res.quote.carRenter = :renter") })
+@NamedQueries({
+		@NamedQuery(name = "Reservation.byRenter",
+				query = "SELECT res FROM Reservation res WHERE res.quote.carRenter = :renter"),
+		@NamedQuery(
+				name = "Reservation.countByRenter",
+				query = "SELECT COUNT(res) FROM Reservation res WHERE res.quote.carRenter = :renter") })
 public class Reservation {
 
 	public static final String KIND = "Reservation";

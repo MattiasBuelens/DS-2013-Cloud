@@ -25,9 +25,12 @@ import ds.gae.EMF;
 
 @Entity(name = Car.KIND)
 @NamedQueries({
-	@NamedQuery(name = "Car.byType",
-		query = "SELECT c FROM Car c WHERE c.carTypeKey = :carTypeKey")
-})
+		@NamedQuery(name = "Car.byType",
+				query = "SELECT c FROM Car c WHERE c.carTypeKey = :carTypeKey"),
+		@NamedQuery(name = "Car.keyByType",
+				query = "SELECT c.encodedKey FROM Car c WHERE c.carTypeKey = :carTypeKey"),
+		@NamedQuery(name = "Car.countByType",
+				query = "SELECT COUNT(c) FROM Car c WHERE c.carTypeKey = :carTypeKey") })
 public class Car {
 
 	public static final String KIND = "Car";

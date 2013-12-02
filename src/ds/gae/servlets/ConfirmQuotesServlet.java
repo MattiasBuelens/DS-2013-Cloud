@@ -10,10 +10,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import ds.gae.CarRentalModel;
-import ds.gae.ReservationException;
+import com.google.appengine.api.taskqueue.Queue;
+import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.appengine.api.taskqueue.TaskOptions;
+
 import ds.gae.entities.Quote;
-import ds.gae.view.ViewTools;
 import ds.gae.view.JSPSite;
 
 @SuppressWarnings("serial")
@@ -27,24 +28,34 @@ public class ConfirmQuotesServlet extends HttpServlet {
 		HttpSession session = req.getSession();
 		HashMap<String, ArrayList<Quote>> allQuotes = (HashMap<String, ArrayList<Quote>>) session.getAttribute("quotes");
 
-		try {
-			ArrayList<Quote> qs = new ArrayList<Quote>();
-			
-			for (String crcName : allQuotes.keySet()) {
-				qs.addAll(allQuotes.get(crcName));
-			}
-			CarRentalModel.get().confirmQuotes(qs);
-			
-			session.setAttribute("quotes", new HashMap<String, ArrayList<Quote>>());
-			
-			// TODO
-			// If you wish confirmQuotesReply.jsp to be shown to the client as
-			// a response of calling this servlet, please replace the following line 
-			// with resp.sendRedirect(JSPSite.CONFIRM_QUOTES_RESPONSE.url());
-			resp.sendRedirect(JSPSite.CREATE_QUOTES.url());
-		} catch (ReservationException e) {
-			session.setAttribute("errorMsg", ViewTools.encodeHTML(e.getMessage()));
-			resp.sendRedirect(JSPSite.RESERVATION_ERROR.url());				
+		String renter = (String) session.getAttribute("renter");
+		
+		// collect quotes here and in session
+		ArrayList<Quote> qs = new ArrayList<Quote>();
+		
+		for (String crcName : allQuotes.keySet()) {
+			qs.addAll(allQuotes.get(crcName));
 		}
+		
+		session.setAttribute("quotes", new HashMap<String, ArrayList<Quote>>());
+		
+		// serialize quotes
+		// TODO call serialization
+		byte[] serializedQuotes = null;
+		
+		// create task and add it to the (default) queue
+		Queue queue = QueueFactory.getDefaultQueue();
+	    TaskOptions options = TaskOptions.Builder.withUrl("/worker")
+	    			.param("quotes", serializedQuotes)
+	    			.param("renter", renter);
+	    
+		queue.add(options);
+		
+		// TODO
+		// If you wish confirmQuotesReply.jsp to be shown to the client as
+		// a response of calling this servlet, please replace the following line 
+		// with:
+		//resp.sendRedirect(JSPSite.CONFIRM_QUOTES_RESPONSE.url());
+		resp.sendRedirect(JSPSite.CREATE_QUOTES.url());
 	}
 }

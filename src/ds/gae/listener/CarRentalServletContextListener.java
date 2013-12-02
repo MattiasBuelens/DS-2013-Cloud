@@ -60,8 +60,6 @@ public class CarRentalServletContextListener implements ServletContextListener {
 
 	public static Set<Car> loadData(String name, String datafile) throws NumberFormatException,
 			IOException {
-		// FIXME: adapt the implementation of this method to your entity
-		// structure
 
 		Set<Car> cars = new HashSet<Car>();
 

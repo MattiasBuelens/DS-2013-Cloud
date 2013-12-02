@@ -3,6 +3,7 @@ package ds.gae;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -10,7 +11,6 @@ import java.io.Serializable;
 public class SerializationUtils {
 
 	private SerializationUtils() {
-
 	}
 
 	public static byte[] serialize(Serializable obj) {
@@ -25,8 +25,16 @@ public class SerializationUtils {
 	}
 
 	public static Object deserialize(byte[] bytes) {
-		try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-				ObjectInputStream in = new ObjectInputStream(bis)) {
+		try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);) {
+			return deserialize(bis);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static Object deserialize(InputStream is) {
+		try (ObjectInputStream in = new ObjectInputStream(is)) {
 			return in.readObject();
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();

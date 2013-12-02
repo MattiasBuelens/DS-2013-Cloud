@@ -24,7 +24,7 @@ public class SerializationUtils {
 		return null;
 	}
 
-	public static Object deserialize(byte[] bytes) {
+	public static <T extends Serializable> T deserialize(byte[] bytes) {
 		try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);) {
 			return deserialize(bis);
 		} catch (IOException e) {
@@ -33,9 +33,10 @@ public class SerializationUtils {
 		return null;
 	}
 
-	public static Object deserialize(InputStream is) {
+	@SuppressWarnings("unchecked")
+	public static <T extends Serializable> T deserialize(InputStream is) {
 		try (ObjectInputStream in = new ObjectInputStream(is)) {
-			return in.readObject();
+			return (T) in.readObject();
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

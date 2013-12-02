@@ -14,6 +14,7 @@ import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 
+import ds.gae.SerializationUtils;
 import ds.gae.entities.Quote;
 import ds.gae.view.JSPSite;
 
@@ -40,13 +41,12 @@ public class ConfirmQuotesServlet extends HttpServlet {
 		session.setAttribute("quotes", new HashMap<String, ArrayList<Quote>>());
 		
 		// serialize quotes
-		// TODO call serialization
-		byte[] serializedQuotes = null;
+		byte[] serializedQuotes = SerializationUtils.serialize(qs);
 		
 		// create task and add it to the (default) queue
 		Queue queue = QueueFactory.getDefaultQueue();
 	    TaskOptions options = TaskOptions.Builder.withUrl("/worker")
-	    			.param("quotes", serializedQuotes)
+	    			.payload(serializedQuotes)
 	    			.param("renter", renter);
 	    
 		queue.add(options);

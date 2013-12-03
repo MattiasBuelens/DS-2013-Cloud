@@ -328,14 +328,6 @@ public class CarRentalModel {
 	 *            the given car type
 	 * @return A list of car IDs of cars with the given car type.
 	 */
-	/*
-	 * TODO QUESTION This breaks the signature (was Collection<Integer>), are we allowed
-	 * to do this?
-	 * 
-	 * The Datastore uses 64-bit numerical IDs. We cannot fully represent these
-	 * in a 32-bit integer without losing information. Would this cause problems
-	 * for automated tests to be run on our code?
-	 */
 	public Collection<Long> getCarIdsByCarType(String crcName, CarType carType) {
 		Collection<Key> keys = getCarKeysByCarType(crcName, carType);
 		Collection<Long> out = new ArrayList<Long>();

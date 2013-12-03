@@ -54,7 +54,7 @@ public class ConfirmQuotesServlet extends HttpServlet {
 
 		queue.add(options);
 
-		// TODO
+		// TODO what to do when the confirmation was queued?
 		// If you wish confirmQuotesReply.jsp to be shown to the client as
 		// a response of calling this servlet, please replace the following line
 		// with:

@@ -22,14 +22,15 @@ public class Worker extends HttpServlet {
 		try {
 			CarRentalModel.get().confirmQuotes(params.getQuotes());
 		} catch (ReservationException e) {
-			// TODO
+			// TODO what to do when a confirmation fails?
 			// req.getSession().setAttribute("errorMsg",
 			// ViewTools.encodeHTML(e.getMessage()));
 			// resp.sendRedirect(JSPSite.RESERVATION_ERROR.url());
 			e.printStackTrace();
 		}
 
-		// TODO: what to do now? add data to datastore for generating
-		// notifications?
+		// TODO what to do when a confirmation was handled?
+		// add data to datastore for generating notifications?
+		// redirect to new page?
 	}
 }

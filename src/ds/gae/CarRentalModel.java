@@ -341,7 +341,7 @@ public class CarRentalModel {
 	 * @return A list of car IDs of cars with the given car type.
 	 */
 	/*
-	 * TODO This breaks the signature (was Collection<Integer>), are we allowed
+	 * TODO QUESTION This breaks the signature (was Collection<Integer>), are we allowed
 	 * to do this?
 	 * 
 	 * The Datastore uses 64-bit numerical IDs. We cannot fully represent these

@@ -30,35 +30,25 @@ public class ConfirmQuotesServlet extends HttpServlet {
 		HttpSession session = req.getSession();
 		HashMap<String, ArrayList<Quote>> allQuotes = (HashMap<String, ArrayList<Quote>>) session
 				.getAttribute("quotes");
-
 		String renter = (String) session.getAttribute("renter");
 
-		// collect quotes here and in session
+		// Collect quotes from session
 		ArrayList<Quote> qs = new ArrayList<Quote>();
-
 		for (String crcName : allQuotes.keySet()) {
 			qs.addAll(allQuotes.get(crcName));
 		}
-
+		// Clear quotes in session
 		session.setAttribute("quotes", new HashMap<String, ArrayList<Quote>>());
 
+		// Construct serialized payload
 		ConfirmQuotesParams params = new ConfirmQuotesParams(qs, renter);
-
-		// serialize quotes
 		byte[] serializedParams = SerializationUtils.serialize(params);
 
-		// create task and add it to the (default) queue
+		// Create task and add it to the (default) queue
 		Queue queue = QueueFactory.getDefaultQueue();
-		TaskOptions options = TaskOptions.Builder.withUrl("/worker").payload(
-				serializedParams);
-
+		TaskOptions options = TaskOptions.Builder.withUrl("/worker").payload(serializedParams);
 		queue.add(options);
 
-		// TODO what to do when the confirmation was queued?
-		// If you wish confirmQuotesReply.jsp to be shown to the client as
-		// a response of calling this servlet, please replace the following line
-		// with:
-		// resp.sendRedirect(JSPSite.CONFIRM_QUOTES_RESPONSE.url());
-		resp.sendRedirect(JSPSite.CREATE_QUOTES.url());
+		resp.sendRedirect(JSPSite.CONFIRM_QUOTES_RESPONSE.url());
 	}
 }

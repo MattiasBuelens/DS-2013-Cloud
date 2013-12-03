@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat;
  */
 public class ViewTools {
 	public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd.MM.yyyy");
+	public static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 	
 	/**
 	 * Converts plain text to HTML-encoded text

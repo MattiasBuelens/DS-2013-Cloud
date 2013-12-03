@@ -14,8 +14,8 @@ import com.google.appengine.api.datastore.KeyFactory;
 @NamedQueries({
 		@NamedQuery(name = "CarType.byCompany",
 				query = "SELECT ct FROM CarType ct WHERE companyKey = :companyKey"),
-		@NamedQuery(name = "CarType.namesByCompany",
-				query = "SELECT ct.name FROM CarType ct WHERE companyKey = :companyKey") })
+		@NamedQuery(name = "CarType.keysByCompany",
+				query = "SELECT ct.key FROM CarType ct WHERE companyKey = :companyKey") })
 public class CarType {
 
 	public static final String KIND = "CarType";
@@ -33,14 +33,6 @@ public class CarType {
 	@Extension(vendorName = "datanucleus", key = "gae.parent-pk", value = "true")
 	private Key companyKey;
 
-	/**
-	 * Duplicated as field for querying purposes.
-	 * 
-	 * TODO Can we SELECT just (part of) the key in a JPQL query? That way, we
-	 * don't need to duplicate this field.
-	 */
-	private String name;
-
 	private int nbOfSeats;
 	private boolean smokingAllowed;
 	private double rentalPricePerDay;
@@ -57,7 +49,6 @@ public class CarType {
 	public CarType(String companyName, String name, int nbOfSeats, float trunkSpace,
 			double rentalPricePerDay, boolean smokingAllowed) {
 		this.key = getKey(companyName, name);
-		this.name = name;
 		this.nbOfSeats = nbOfSeats;
 		this.trunkSpace = trunkSpace;
 		this.rentalPricePerDay = rentalPricePerDay;
@@ -73,7 +64,7 @@ public class CarType {
 	}
 
 	public String getName() {
-		return name;
+		return getKey().getName();
 	}
 
 	public int getNbOfSeats() {

@@ -2,6 +2,7 @@ package ds.gae;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -17,7 +18,9 @@ import com.google.appengine.api.datastore.KeyFactory;
 import ds.gae.entities.Car;
 import ds.gae.entities.CarRentalCompany;
 import ds.gae.entities.CarType;
+import ds.gae.entities.Notification;
 import ds.gae.entities.Quote;
+import ds.gae.entities.Renter;
 import ds.gae.entities.Reservation;
 import ds.gae.entities.ReservationConstraints;
 
@@ -453,6 +456,55 @@ public class CarRentalModel {
 	 */
 	public boolean hasReservations(String renter) {
 		return getAmountOfReservations(renter) > 0;
+	}
+
+	public Renter getRenter(String renterName) {
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			return getRenter(em, renterName);
+		} finally {
+			em.close();
+		}
+	}
+
+	protected Renter getRenter(EntityManager em, String renterName) {
+		EntityTransaction t = em.getTransaction();
+		t.begin();
+		Renter renter = em.find(Renter.class, renterName);
+		if (renter == null) {
+			renter = new Renter(renterName);
+			em.persist(renter);
+		}
+		t.commit();
+		return renter;
+	}
+
+	public List<Notification> getNotifications(String renterName) {
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			return getNotifications(em, renterName);
+		} finally {
+			em.close();
+		}
+	}
+
+	protected List<Notification> getNotifications(EntityManager em, String renterName) {
+		return em.createNamedQuery("Notification.byRenter", Notification.class)
+				.setParameter("renterKey", Renter.getKey(renterName)).getResultList();
+	}
+
+	public void addNotification(String renterName, String message) {
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			addNotification(em, renterName, message);
+		} finally {
+			em.close();
+		}
+	}
+
+	protected void addNotification(EntityManager em, String renterName, String message) {
+		Renter renter = getRenter(em, renterName);
+		renter.addNotification(message, new Date());
 	}
 
 }

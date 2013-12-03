@@ -198,6 +198,8 @@ public class CarRentalModel {
 			throw e;
 		}
 	}
+	
+	//TODO QUESTION use transactions per company?
 
 	/**
 	 * Confirm the given list of quotes <strong>for one company</strong>.
@@ -303,10 +305,6 @@ public class CarRentalModel {
 	 * @return The list of car types in the given car rental company.
 	 */
 	public Collection<CarType> getCarTypesOfCarRentalCompany(String crcName) {
-		return getCarTypesOfCarRentalCompany_Query(crcName);
-	}
-
-	protected Collection<CarType> getCarTypesOfCarRentalCompany_Query(String crcName) {
 		EntityManager em = EMF.get().createEntityManager();
 		try {
 			return getCarTypesOfCarRentalCompany(em, crcName);
@@ -318,20 +316,6 @@ public class CarRentalModel {
 	protected Collection<CarType> getCarTypesOfCarRentalCompany(EntityManager em, String crcName) {
 		return em.createNamedQuery("CarType.byCompany", CarType.class)
 				.setParameter("companyKey", CarRentalCompany.getKey(crcName)).getResultList();
-	}
-
-	/*
-	 * TODO Better? Two finds are usually faster than one query.
-	 * 
-	 * See: http://goo.gl/aEBVEC
-	 */
-	protected Collection<CarType> getCarTypesOfCarRentalCompany_TwoFinds(String crcName) {
-		EntityManager em = EMF.get().createEntityManager();
-		try {
-			return new ArrayList<CarType>(getRentalCompany(crcName).getAllCarTypes());
-		} finally {
-			em.close();
-		}
 	}
 
 	/**

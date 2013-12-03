@@ -41,9 +41,6 @@ public class Car {
 	 * Since this is a child object, we cannot use an {@code @Id long}. Thus, we
 	 * have to use a {@link Key}. Luckily, GAE can still auto-generate one for
 	 * us.
-	 * 
-	 * The parent key is set through the owned many-to-one relation with
-	 * {@link CarType}.
 	 */
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

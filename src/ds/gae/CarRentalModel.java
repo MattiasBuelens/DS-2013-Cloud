@@ -49,9 +49,13 @@ public class CarRentalModel {
 	}
 
 	protected Set<String> getCarTypesNames(EntityManager em, String crcName) {
-		List<String> carTypeNames = em.createNamedQuery("CarType.namesByCompany", String.class)
+		List<Key> carTypeKeys = em.createNamedQuery("CarType.keysByCompany", Key.class)
 				.setParameter("companyKey", CarRentalCompany.getKey(crcName)).getResultList();
-		return new HashSet<String>(carTypeNames);
+		Set<String> carTypeNames = new HashSet<String>();
+		for (Key key : carTypeKeys) {
+			carTypeNames.add(key.getName());
+		}
+		return carTypeNames;
 	}
 
 	/**

@@ -13,7 +13,6 @@ public class ConfirmQuotesParams implements Serializable {
 	private final String renter;
 
 	public ConfirmQuotesParams(ArrayList<Quote> quotes, String renter) {
-		super();
 		this.quotes = quotes;
 		this.renter = renter;
 	}

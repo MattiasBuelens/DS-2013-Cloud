@@ -198,8 +198,6 @@ public class CarRentalModel {
 			throw e;
 		}
 	}
-	
-	//TODO QUESTION use transactions per company?
 
 	/**
 	 * Confirm the given list of quotes <strong>for one company</strong>.

@@ -7,7 +7,7 @@
     pageEncoding="UTF-8"%>
 <% 
 	String renter = (String)session.getAttribute("renter");
-	JSPSite currentSite = JSPSite.RESERVATIONS;
+	JSPSite currentSite = JSPSite.NOTIFICATIONS;
 	
 %>   
  

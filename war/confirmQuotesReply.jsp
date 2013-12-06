@@ -53,8 +53,10 @@ for (JSPSite site : JSPSite.publiclyLinkedValues()) {
 				<div class="groupLabel">Reply</div>
 				<div class="group">
 					<p>
-					TODO: Here you can give some information to client who is currently 
-							logged in as user <%=renter%>.
+						Processing your reservations&hellip;
+					</p>
+					<p>
+						Check <a href="<%= JSPSite.NOTIFICATIONS.url() %>">your notifications</a> for the result.
 					</p>
 				</div>
 			</div>
